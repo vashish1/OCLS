@@ -17,5 +17,5 @@ type Student struct{
 	Section uint
 	Email string
 	MobileNo string
-	PassHash string
+	PassHash []byte
 }

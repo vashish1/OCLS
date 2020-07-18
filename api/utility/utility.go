@@ -3,8 +3,8 @@ package utility
 import (
 	"errors"
 
-	"github.com/dgrijalva/jwt-go")
-
+	"github.com/dgrijalva/jwt-go"
+)
 
 func GenerateJwtForStudent(email, pass string) (string, error) {
 	user, ok := student.Exist(email, pass)
@@ -20,5 +20,5 @@ func GenerateJwtForStudent(email, pass string) (string, error) {
 		}
 		return tokenString, nil
 	}
-	return "",errors.New("Invalid Credentials")
+	return "", errors.New("Invalid Credentials")
 }
