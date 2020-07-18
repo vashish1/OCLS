@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DbURL = os.Getenv("MongoURL")
+var DbURL = "mongodb://localhost:27017"
 
 func ConnectDb() *mongo.Client {
 
@@ -62,25 +62,25 @@ func InsertIntoDb(c *mongo.Collection, data interface{}) bool {
 	return true
 }
 
-func UpdateMobile(c *mongo.Collection, data models.Number) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-	defer cancel()
-	filter := bson.D{
-		{"uid", data.Uid},
-	}
-	update := bson.D{
-		{
-			"$set", bson.D{{"mobile_no", data.Mobile_no}},
-		},
-	}
-	updateResult, err := c.UpdateOne(ctx, filter, update)
-	if err != nil {
-		return false
-	}
+// func UpdateMobile(c *mongo.Collection, data models.Number) bool {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+// 	defer cancel()
+// 	filter := bson.D{
+// 		{"uid", data.Uid},
+// 	}
+// 	update := bson.D{
+// 		{
+// 			"$set", bson.D{{"mobile_no", data.Mobile_no}},
+// 		},
+// 	}
+// 	updateResult, err := c.UpdateOne(ctx, filter, update)
+// 	if err != nil {
+// 		return false
+// 	}
 
-	if updateResult.ModifiedCount == 0 {
-		return false
-	}
-	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
-	return true
-}
+// 	if updateResult.ModifiedCount == 0 {
+// 		return false
+// 	}
+// 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
+// 	return true
+// }

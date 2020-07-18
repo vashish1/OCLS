@@ -5,6 +5,7 @@ type LoginResponse struct {
 	Token   string `json:"token,omitempty"`
 }
 
-type Number struct{
-	
+type Login struct {
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
 }

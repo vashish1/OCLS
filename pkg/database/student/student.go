@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/vashish1/OnlineClassPortal/pkg/database"
-	"github.com/vashish1/OnlineClassPortal/pkg/models"
 	"github.com/vashish1/OnlineClassPortal/pkg/helpers"
+	"github.com/vashish1/OnlineClassPortal/pkg/models"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -21,8 +21,8 @@ func Exist(email, pass string) (models.Student, bool) {
 	}
 	err := db.FindOne(ctx, filter).Decode(&data)
 	if err != nil {
-		return false
+		return data,false
 	}
-	ok := helpers.ValidatePass(data.PassHash,pass)
-	return ok
+	ok := helpers.ValidatePass(data.PassHash, pass)
+	return data,ok
 }

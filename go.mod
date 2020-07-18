@@ -1,4 +1,4 @@
-module github.com/vashish1/ResourcePortal
+module github.com/vashish1/OnlineClassPortal
 
 go 1.14
 
