@@ -1,2 +1,2 @@
-# ResourcePortal
-Backend for a  Resource portal service for MMIL
+# Online Class Portal
+Backend for a  online class portal service for MMIL
