@@ -1,9 +1,13 @@
 package helpers
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"fmt"
+
+	"golang.org/x/crypto/bcrypt")
+
 
 func EncodePass(pass string) ([]byte, error) {
-	hash, err := bcrypt.GenerateFromPassword([]byte(pass), 20)
+	hash, err := bcrypt.GenerateFromPassword([]byte(pass), 6)
 	if err != nil {
 		return nil, err
 	}
@@ -13,6 +17,7 @@ func EncodePass(pass string) ([]byte, error) {
 func ValidatePass(hash []byte,pass string) bool {
 	 err:=bcrypt.CompareHashAndPassword(hash,[]byte(pass))
 	 if err!=nil{
+		 fmt.Println(err)
 		 return false
 	 }
 	 return true

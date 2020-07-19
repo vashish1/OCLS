@@ -12,8 +12,8 @@ var port = os.Getenv("PORT")
 var r, router *mux.Router
 
 func setupRoutes() {
-	r.Handle("/login", v1.StudentLogin()).Methods("POST")
-	r.Handle("/check", v1.CkeckLogin()).Methods("GET")
+	r.Handle("/login/student", v1.StudentLogin()).Methods("POST")
+	r.Handle("/login/teacher", v1.TeacherLogin()).Methods("POST")
 }
 
 func main() {
