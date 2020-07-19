@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/vashish1/OnlineClassPortal/api/utility"
+	"github.com/vashish1/OnlineClassPortal/pkg/database/student"
 	"github.com/vashish1/OnlineClassPortal/pkg/models"
 )
 
@@ -41,4 +42,25 @@ func StudentLogin() http.Handler {
 		t.Token = token
 		json.NewEncoder(w).Encode(t)
 	})
+}
+
+func Sdashboard() http.Handler{
+ return http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){
+	var dash models.Dash
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &dash)
+	fmt.Println("email",dash)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "body not parsed"}`))
+		return
+	}
+	student,ok:=student.Exist(dash.Email)
+	if !ok{
+		w.WriteHeader(500)
+		w.Write([]byte(`{"error": "Email Invalid"}`))
+		return
+	}
+	json.NewEncoder(w).Encode(student)
+ })
 }

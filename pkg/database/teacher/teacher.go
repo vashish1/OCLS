@@ -12,10 +12,10 @@ import (
 
 var db1 = database.TeachersDb()
 
-func Exist(email, pass string) (models.Student, bool) {
+func Exist(email string) (models.Teacher, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
-	var data models.Student
+	var data models.Teacher
 	filter := bson.D{
 		{"email", email},
 	}
@@ -25,4 +25,18 @@ func Exist(email, pass string) (models.Student, bool) {
 		return data, false
 	}
 	return data, true
+}
+
+func IsAvailable(uid string) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	filter := bson.D{
+		{"uid", uid},
+	}
+	err := db1.FindOne(ctx, filter)
+	if err.Err() == nil {
+		fmt.Println("Same Uid exists", err)
+		return true
+	}
+	return false
 }

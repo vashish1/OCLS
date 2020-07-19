@@ -1,25 +1,37 @@
 package middleware
 
-import "github.com/vashish1/OnlineClassPortal/api/utility"
+import (
+	"fmt"
+	"net/http"
 
-func AuthMw(next http.Handler) http.Handler {
+	"github.com/vashish1/OnlineClassPortal/api/utility"
+	"github.com/vashish1/OnlineClassPortal/pkg/database/student"
+	"github.com/vashish1/OnlineClassPortal/pkg/database/teacher"
+)
+
+func Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("executing middleware for authorization")
 		str := r.Header.Get("Authorization")
 		w.Header().Set("Content-Type", "application/json")
 
-		ok:=utility.VerifyJwt(str)
-		if !ok{
-			w.WriteHeader(resp.Status_code)
-			b, _ := json.Marshal(resp)
-			w.Write(b)
+		m, ok := utility.VerifyJwt(str)
+		if !ok {
+			w.WriteHeader(400)
+			w.Write([]byte(`{"error": "Authentication Failed"}`))
 			return
 		}
-		fmt.Println("Verified ID token:", token)
-		w.WriteHeader(http.StatusOK)
-		next.ServeHTTP(w, r)
-	}, BadExpr,
-
-		BadExpr,
-	)
+		user := m["type"].(float64)
+		if user == 0 {
+			ok = student.IsAvailable(m["uid"].(string))
+		} else {
+			ok = teacher.IsAvailable(m["uid"].(string))
+		}
+		if ok {
+			next.ServeHTTP(w, r)
+		}
+		w.WriteHeader(400)
+		w.Write([]byte(`{"error": "Authentication Failed"}`))
+		return
+	})
 }

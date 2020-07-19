@@ -12,7 +12,7 @@ import (
 
 var db = database.StudentDb()
 
-func Exist(email, pass string) (models.Student, bool) {
+func Exist(email string) (models.Student, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	var data models.Student
