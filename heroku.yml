@@ -1,0 +1,8 @@
+build:
+    languages:
+      - go
+  
+  run:
+    web: OnlineClassPortal
+    
+  
