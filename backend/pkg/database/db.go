@@ -9,7 +9,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var DbURL = "mongodb://localhost:27017"
+var DbURL = "mongodb+srv://yashi:KNT8CQsC7120GowL@cluster0-2pscc.mongodb.net/test?retryWrites=true&w=majority"
 
 func ConnectDb() *mongo.Client {
 
