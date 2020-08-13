@@ -19,9 +19,9 @@ func setupRoutes() {
 }
 
 func main() {
-	if port == "" {
-		port = "8000"
-	}
+	// if port == "" {
+	// 	port = "8000"
+	// }
 	router = fiber.New()
 	router.Use(cors.New())
 	login = router.Group("/api/login")
