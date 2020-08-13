@@ -1,4 +1,4 @@
-package main
+package testcalender
 
 import (
 	"encoding/json"
@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -79,7 +78,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println("Unable to read client secret file: %v", err)
 	}
-	conf, err = google.ConfigFromJSON(b, calendar.CalendarReadonlyScope,calendar.CalendarScope,calendar.CalendarEventsScope)
+	conf, err = google.ConfigFromJSON(b, calendar.CalendarReadonlyScope, calendar.CalendarScope, calendar.CalendarEventsScope)
 	if err != nil {
 		fmt.Println("Unable to parse client secret file to config: %v", err)
 	}
@@ -87,17 +86,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 	authURL := conf.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
 	fmt.Println("Go to the following link in your browser then type the "+
 		"authorization code: \n%v\n", authURL)
-		w.Write([]byte("<html><title>Golang Google</title> <body> <a href='" + authURL + "'><button>Login with Google!</button> </a> </body></html>"))
+	w.Write([]byte("<html><title>Golang Google</title> <body> <a href='" + authURL + "'><button>Login with Google!</button> </a> </body></html>"))
 }
 
-func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/login", login).Methods("GET")
-	r.HandleFunc("/auth", authhandler).Methods("GET")
-	http.Handle("/", r)
-	http.ListenAndServe(":8000", nil)
+// func main() {
+// 	r := mux.NewRouter()
+// 	r.HandleFunc("/login", login).Methods("GET")
+// 	r.HandleFunc("/auth", authhandler).Methods("GET")
+// 	http.Handle("/", r)
+// 	http.ListenAndServe(":8000", nil)
 
-}
+// }
 
 func authhandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("okay")
@@ -129,7 +128,7 @@ func authhandler(w http.ResponseWriter, r *http.Request) {
 		},
 		Recurrence: []string{"RRULE:FREQ=DAILY;COUNT=2"},
 		Attendees: []*calendar.EventAttendee{
-			&calendar.EventAttendee {Email: "vashishtiv@gmail.com"},
+			&calendar.EventAttendee{Email: "vashishtiv@gmail.com"},
 			&calendar.EventAttendee{Email: "pooonamgupta8@gmail.com"},
 		},
 	}
