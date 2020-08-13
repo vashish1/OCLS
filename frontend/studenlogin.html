@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Login</title>
+</head>
+<body>
+
+<div class="container">
+<div class="header">
+ <h1>Login here</h1>
+ </div>
+
+ <form name="login" onsubmit="return basiclogin() ;" method="post">
+
+ <ul>
+ <li>Username: <input class="username" type="text" name="username">
+ </li>
+
+ <li>Password: <input class="password" type="password" name="password">
+ </li>
+ </ul>
+
+<input type="button" class="submit" value="Log In" name="submit" onclick="validate()">
+</form>
+</div>
+
+<script>
+   async function basiclogin (email, password) {
+  const response = await JSON.post("", {
+    body: {
+      username: email,
+      password: password
+    },
+  })
+}
+</script>
+
+
+</body>
+</html>
