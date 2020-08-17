@@ -10,7 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-var db = database.StudentDb()
+var Db = database.StudentDb()
 
 func Exist(email string) (models.Student, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -20,7 +20,7 @@ func Exist(email string) (models.Student, bool) {
 		{"email", email},
 		{"freeze", false},
 	}
-	err := db.FindOne(ctx, filter).Decode(&data)
+	err := Db.FindOne(ctx, filter).Decode(&data)
 	if err != nil {
 		return data, false
 	}
@@ -34,7 +34,7 @@ func IsAvailable(uid string) bool {
 		{"uid", uid},
 		{"freeze", false},
 	}
-	err := db.FindOne(ctx, filter)
+	err := Db.FindOne(ctx, filter)
 	if err.Err() == nil {
 		fmt.Println("Same Uid exists", err)
 		return true

@@ -17,6 +17,6 @@ type Student struct {
 	Section    uint   `json:"section,omitempty"`
 	Email      string `json:"email,omitempty"`
 	MobileNo   string `json:"mobile_no,omitempty"`
-	PassHash   string `json:"pass_hash,omitempty"`
+	PassHash   string `json:"passhash,omitempty"`
 	Freeze     bool   `json:"freeze,omitempty"`
 }

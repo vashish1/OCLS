@@ -5,6 +5,9 @@ import (
 
 	"github.com/gofiber/fiber"
 	"github.com/vashish1/OnlineClassPortal/api/utility"
+	"github.com/vashish1/OnlineClassPortal/internal/worker"
+	"github.com/vashish1/OnlineClassPortal/pkg/database"
+	"github.com/vashish1/OnlineClassPortal/pkg/database/student"
 	"github.com/vashish1/OnlineClassPortal/pkg/models"
 )
 
@@ -54,3 +57,27 @@ func StudentsLogin(c *fiber.Ctx) {
 // 		json.NewEncoder(w).Encode(student)
 // 	})
 // }
+
+func Sign(c *fiber.Ctx) {
+	c.Set("Content-Type", "application/json")
+	var login models.Student
+
+	err := c.BodyParser(&login)
+	fmt.Println("user trying to login \n", login)
+	if err != nil {
+
+		c.Status(400).Send("Body not parsed")
+		return
+	}
+	fmt.Println(login.PassHash)
+
+	test := worker.Worker(login.PassHash)
+	login.PassHash=test
+	fmt.Println(test)
+	ok := database.InsertIntoDb(student.Db, login)
+	if !ok {
+		c.Status(400).Send("Error while Inserting")
+		return
+	}
+	c.Status(200)
+}
