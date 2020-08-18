@@ -22,13 +22,20 @@
 
 <script>
    async function basiclogin (email, password) {
-  const response = await JSON.post("", {
-    body: {
-      username: email,
-      password: password
-      },
-    })
-  }
+  const response = await request({
+      method: "POST",
+      uri: "https://subratasarkar.com/actions.php",
+      json: true,
+      data: {
+        email: email,
+        password: password
+      }
+    }).then(body => {
+      //const data = JSON.parse(body);
+      //this.ask(data.user.name);
+      console.log(body);
+    });
+   }
 </script>
 </body>
 </html>

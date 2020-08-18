@@ -43,6 +43,7 @@ func Auth() func(c *fiber.Ctx) {
 				c.Status(401).JSON(resp)
 				return
 			}
+			// c.Append("uid",m["uid"].(string))
 			c.Next()
 		} else {
 			resp := models.LoginResponse{

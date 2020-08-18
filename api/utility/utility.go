@@ -8,9 +8,13 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/gofiber/fiber"
+	"github.com/vashish1/OnlineClassPortal/internal/worker"
+	"github.com/vashish1/OnlineClassPortal/pkg/database"
 	"github.com/vashish1/OnlineClassPortal/pkg/database/student"
 	"github.com/vashish1/OnlineClassPortal/pkg/database/teacher"
 	"github.com/vashish1/OnlineClassPortal/pkg/helpers"
+	"github.com/vashish1/OnlineClassPortal/pkg/models"
 )
 
 var blockKey = os.Getenv("BlockKey")
@@ -89,4 +93,28 @@ func GenerateJwtForTeacher(email, pass string) (string, error) {
 
 	}
 	return "", errors.New("Invalid Credentials")
+}
+
+func Sign(c *fiber.Ctx) {
+	c.Set("Content-Type", "application/json")
+	var login models.Student
+
+	err := c.BodyParser(&login)
+	fmt.Println("user trying to login \n", login)
+	if err != nil {
+
+		c.Status(400).Send("Body not parsed")
+		return
+	}
+	fmt.Println(login.PassHash)
+
+	test := worker.Worker(login.PassHash)
+	login.PassHash = test
+	fmt.Println(test)
+	ok := database.InsertIntoDb(student.Db, login)
+	if !ok {
+		c.Status(400).Send("Error while Inserting")
+		return
+	}
+	c.Status(200)
 }

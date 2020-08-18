@@ -34,23 +34,3 @@ func TeachersLogin(c *fiber.Ctx) {
 	c.Status(200).JSON(t)
 }
 
-// func Tdashboard() http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		var dash models.Dash
-// 		body, _ := ioutil.ReadAll(r.Body)
-// 		err := json.Unmarshal(body, &dash)
-// 		fmt.Println("email", dash)
-// 		if err != nil {
-// 			w.WriteHeader(http.StatusBadRequest)
-// 			w.Write([]byte(`{"error": "body not parsed"}`))
-// 			return
-// 		}
-// 		teach, ok := teacher.Exist(dash.Email)
-// 		if !ok {
-// 			w.WriteHeader(500)
-// 			w.Write([]byte(`{"error": "Email Invaid"}`))
-// 			return
-// 		}
-// 		json.NewEncoder(w).Encode(teach)
-// 	})
-// }
