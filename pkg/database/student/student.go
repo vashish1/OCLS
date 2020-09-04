@@ -41,3 +41,19 @@ func IsAvailable(uid string) bool {
 	}
 	return false
 }
+
+func Get(id string)models.Student {
+    ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	var result =models.Student{}
+	filter := bson.D{
+		{"uid", id},
+	}
+	err := Db.FindOne(ctx, filter).Decode(&result)
+	fmt.Println(result)
+	if err == nil {
+		result.PassHash=""
+		return result
+	}
+	return result	
+}

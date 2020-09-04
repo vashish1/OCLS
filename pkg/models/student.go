@@ -11,12 +11,12 @@ const(
 )
 
 type Student struct {
-	Uid        string `json:"uid,omitempty"`
-	Name       string `json:"name,omitempty"`
-	Department string   `json:"department,omitempty"`
-	Section    uint   `json:"section,omitempty"`
-	Email      string `json:"email,omitempty"`
-	MobileNo   string `json:"mobile_no,omitempty"`
+	Uid        string `json:"uid"`
+	Name       string `json:"name"`
+	Department string   `json:"department"`
+	Section    uint   `json:"section"`
+	Email      string `json:"email"`
+	MobileNo   string `json:"mobile_no"`
 	PassHash   string `json:"passhash,omitempty"`
-	Freeze     bool   `json:"freeze,omitempty"`
+	Freeze     bool   `json:"freeze"`
 }
