@@ -35,7 +35,7 @@ func IsAvailable(uid string) bool {
 	}
 	err := db1.FindOne(ctx, filter)
 	if err.Err() == nil {
-		fmt.Println("Same Uid exists", err)
+		// fmt.Println("Same Uid exists", err)
 		return true
 	}
 	return false

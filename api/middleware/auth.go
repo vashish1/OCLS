@@ -35,7 +35,7 @@ func Auth() func(c *fiber.Ctx) {
 				ok = teacher.IsAvailable(m["uid"].(string))
 			}
 			if !ok {
-				resp := models.LoginResponse{
+				resp :=  models.LoginResponse{
 					Success: false,
 					Token:   "",
 					Error:   "Authentication failed",

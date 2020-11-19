@@ -1,9 +1,9 @@
 package models
 
 type LoginResponse struct {
-	Success bool   `json:"success,omitempty"`
-	Token   string `json:"token,omitempty"`
-	Error   string  `json:"error,omitempty"`
+	Success bool   `json:"success"`
+	Token   string `json:"token"`
+	Error   string  `json:"error"`
 }
 
 type Login struct {

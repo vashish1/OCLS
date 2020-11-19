@@ -8,7 +8,10 @@ import (
 	"bytes"
 	"fmt"
 	"hash/crc32"
+	"io"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -16,6 +19,19 @@ import (
 	bytebufferpool "github.com/valyala/bytebufferpool"
 	fasthttp "github.com/valyala/fasthttp"
 )
+
+// readContent opens a named file and read content from it
+func readContent(rf io.ReaderFrom, name string) (n int64, err error) {
+	// Read file
+	f, err := os.Open(filepath.Clean(name))
+	if err != nil {
+		return 0, err
+	}
+	defer func() {
+		err = f.Close()
+	}()
+	return rf.ReadFrom(f)
+}
 
 // quoteString escape special characters in a given string
 func quoteString(raw string) string {
@@ -35,14 +51,18 @@ func setMethodNotAllowed(ctx *Ctx) {
 		}
 		// Reset stack index
 		ctx.indexRoute = -1
+		tree, ok := ctx.app.treeStack[i][ctx.treePath]
+		if !ok {
+			tree = ctx.app.treeStack[i][""]
+		}
 		// Get stack length
-		lenr := len(ctx.app.stack[i]) - 1
+		lenr := len(tree) - 1
 		//Loop over the route stack starting from previous index
 		for ctx.indexRoute < lenr {
 			// Increment route index
 			ctx.indexRoute++
 			// Get *Route
-			route := ctx.app.stack[i][ctx.indexRoute]
+			route := tree[ctx.indexRoute]
 			// Skip use routes
 			if route.use {
 				continue
@@ -163,14 +183,19 @@ func getOffer(header string, offers ...string) string {
 	return ""
 }
 
-// Adapted from:
-// https://github.com/jshttp/fresh/blob/10e0471669dbbfbfd8de65bc6efac2ddd0bfa057/index.js#L110
-func parseTokenList(noneMatchBytes []byte) []string {
-	var (
-		start int
-		end   int
-		list  []string
-	)
+func matchEtag(s string, etag string) bool {
+	if s == etag || s == "W/"+etag || "W/"+s == etag {
+		return true
+	}
+
+	return false
+}
+
+func isEtagStale(etag string, noneMatchBytes []byte) bool {
+	var start, end int
+
+	// Adapted from:
+	// https://github.com/jshttp/fresh/blob/10e0471669dbbfbfd8de65bc6efac2ddd0bfa057/index.js#L110
 	for i := range noneMatchBytes {
 		switch noneMatchBytes[i] {
 		case 0x20:
@@ -179,7 +204,9 @@ func parseTokenList(noneMatchBytes []byte) []string {
 				end = i + 1
 			}
 		case 0x2c:
-			list = append(list, getString(noneMatchBytes[start:end]))
+			if matchEtag(getString(noneMatchBytes[start:end]), etag) {
+				return false
+			}
 			start = i + 1
 			end = i + 1
 		default:
@@ -187,8 +214,7 @@ func parseTokenList(noneMatchBytes []byte) []string {
 		}
 	}
 
-	list = append(list, getString(noneMatchBytes[start:end]))
-	return list
+	return !matchEtag(getString(noneMatchBytes[start:end]), etag)
 }
 
 func isIPv6(address string) bool {
@@ -200,6 +226,34 @@ func parseAddr(raw string) (host, port string) {
 		return raw[:i], raw[i+1:]
 	}
 	return raw, ""
+}
+
+const noCacheValue = "no-cache"
+
+// isNoCache checks if the cacheControl header value is a `no-cache`.
+func isNoCache(cacheControl string) bool {
+	i := strings.Index(cacheControl, noCacheValue)
+	if i == -1 {
+		return false
+	}
+
+	// Xno-cache
+	if i > 0 && !(cacheControl[i-1] == ' ' || cacheControl[i-1] == ',') {
+		return false
+	}
+
+	// bla bla, no-cache
+	if i+len(noCacheValue) == len(cacheControl) {
+		return true
+	}
+
+	// bla bla, no-cacheX
+	if cacheControl[i+len(noCacheValue)] != ',' {
+		return false
+	}
+
+	// OK
+	return true
 }
 
 // https://golang.org/src/net/net.go#L113
@@ -214,7 +268,6 @@ func (a testAddr) String() string {
 }
 
 type testConn struct {
-	net.Conn
 	r bytes.Buffer
 	w bytes.Buffer
 }
@@ -239,6 +292,22 @@ var getStringImmutable = func(b []byte) string {
 var getBytes = utils.GetBytes
 var getBytesImmutable = func(s string) (b []byte) {
 	return []byte(s)
+}
+
+// uniqueRouteStack drop all not unique routes from the slice
+func uniqueRouteStack(stack []*Route) []*Route {
+	var unique []*Route
+	m := make(map[*Route]int)
+	for _, v := range stack {
+		if _, ok := m[v]; !ok {
+			// Unique key found. Record position and collect
+			// in result.
+			m[v] = len(unique)
+			unique = append(unique, v)
+		}
+	}
+
+	return unique
 }
 
 // HTTP methods and their unique INTs

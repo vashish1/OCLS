@@ -16,9 +16,9 @@ var port = os.Getenv("PORT")
 func setupRoutes() {
 	login.Post("/student", v1.StudentsLogin)
 	login.Post("/teacher", v1.TeachersLogin)
-	dash.Get("/",v1.Dasboard)
+	dash.Get("/", v1.Dashboard)
 	// router.Post("/signup",v1.Sign)
-	
+
 }
 
 func main() {

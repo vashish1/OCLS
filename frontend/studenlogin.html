@@ -24,13 +24,14 @@
    async function basiclogin (email, password) {
   const response = await request({
       method: "POST",
-      uri: "https://subratasarkar.com/actions.php",
+      uri: "https://localhost:8000/api/login/student",
       json: true,
       data: {
         email: email,
         password: password
       }
     }).then(body => {
+      console.log("hi");
       //const data = JSON.parse(body);
       //this.ask(data.user.name);
       console.log(body);

@@ -13,6 +13,7 @@ import (
 	"bufio"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -22,7 +23,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"text/tabwriter"
 	"time"
 
 	utils "github.com/gofiber/utils"
@@ -32,7 +32,7 @@ import (
 )
 
 // Version of current package
-const Version = "1.13.3"
+const Version = "1.14.6"
 
 // Map is a shortcut for map[string]interface{}, useful for JSON returns
 type Map map[string]interface{}
@@ -48,9 +48,14 @@ type Error struct {
 
 // App denotes the Fiber application.
 type App struct {
+	out   io.Writer
 	mutex sync.Mutex
 	// Route stack divided by HTTP methods
 	stack [][]*Route
+	// Route stack divided by HTTP methods and route prefixes
+	treeStack []map[string][]*Route
+	// Amount of registered routes
+	routesCount int
 	// Amount of registered handlers
 	handlerCount int
 	// Ctx pool
@@ -139,10 +144,6 @@ type Settings struct {
 	// When set to true, it will not print out the «Fiber» ASCII art and listening address.
 	// Default: false
 	DisableStartupMessage bool `json:"disable_startup_message"`
-
-	// Deprecated: Templates is deprecated please use Views.
-	// Default: nil
-	Templates Templates `json:"-"`
 
 	// Views is the interface that wraps the Render function.
 	// Default: nil
@@ -236,7 +237,8 @@ func New(settings ...*Settings) *App {
 	// Create a new app
 	app := &App{
 		// Create router stack
-		stack: make([][]*Route, len(intMethod)),
+		stack:     make([][]*Route, len(intMethod)),
+		treeStack: make([]map[string][]*Route, len(intMethod)),
 		// Create Ctx pool
 		pool: sync.Pool{
 			New: func() interface{} {
@@ -427,18 +429,12 @@ func (app *App) Routes() []*Route {
 	return routes
 }
 
-// Serve is deprecated, please use app.Listener()
-func (app *App) Serve(ln net.Listener, tlsconfig ...*tls.Config) error {
-	fmt.Println("serve: app.Serve() is deprecated since v1.12.5, please use app.Listener()")
-	return app.Listener(ln, tlsconfig...)
-}
-
 // Listener can be used to pass a custom listener.
 // You can pass an optional *tls.Config to enable TLS.
 // This method does not support the Prefork feature
 // To use Prefork, please use app.Listen()
 func (app *App) Listener(ln net.Listener, tlsconfig ...*tls.Config) error {
-	// Update fiber server settings
+	// Update server settings
 	app.init()
 	// TLS config
 	if len(tlsconfig) > 0 {
@@ -471,7 +467,7 @@ func (app *App) Listen(address interface{}, tlsconfig ...*tls.Config) error {
 	if !strings.Contains(addr, ":") {
 		addr = ":" + addr
 	}
-	// Update fiber server settings
+	// Update server settings
 	app.init()
 	// Start prefork
 	if app.Settings.Prefork {
@@ -501,6 +497,7 @@ func (app *App) Listen(address interface{}, tlsconfig ...*tls.Config) error {
 
 // Handler returns the server handler.
 func (app *App) Handler() fasthttp.RequestHandler {
+	app.init()
 	return app.handler
 }
 
@@ -509,7 +506,8 @@ func (app *App) Stack() [][]*Route {
 	return app.stack
 }
 
-// Shutdown gracefully shuts down the server without interrupting any active connections.
+// Shutdown gracefully
+// shuts down the server without interrupting any active connections.
 // Shutdown works by first closing all open listeners and then waiting indefinitely for all connections to return to idle and then shut down.
 //
 // When Shutdown is called, Serve, ListenAndServe, and ListenAndServeTLS immediately return nil.
@@ -588,13 +586,12 @@ func (dl *disableLogger) Printf(format string, args ...interface{}) {
 }
 
 func (app *App) init() *App {
+	// Lock application
 	app.mutex.Lock()
+	defer app.mutex.Unlock()
+
 	// Load view engine if provided
 	if app.Settings != nil {
-		// Templates is replaced by Views with layout support
-		if app.Settings.Templates != nil {
-			fmt.Println("`Templates` are deprecated since v1.12.x, please use `Views` instead")
-		}
 		// Only load templates if an view engine is specified
 		if app.Settings.Views != nil {
 			if err := app.Settings.Views.Load(); err != nil {
@@ -638,15 +635,15 @@ func (app *App) init() *App {
 	app.server.IdleTimeout = app.Settings.IdleTimeout
 	app.server.ReadBufferSize = app.Settings.ReadBufferSize
 	app.server.WriteBufferSize = app.Settings.WriteBufferSize
-	app.mutex.Unlock()
+	app.buildTree()
 	return app
 }
 
 const (
 	cBlack = "\u001b[90m"
-	// cRed     = "\u001b[91m"
-	// cGreen = "\u001b[92m"
-	// cYellow  = "\u001b[93m"
+	cRed   = "\u001b[91m"
+	// cGreen  = "\u001b[92m"
+	// cYellow = "\u001b[93m"
 	// cBlue    = "\u001b[94m"
 	// cMagenta = "\u001b[95m"
 	cCyan = "\u001b[96m"
@@ -665,14 +662,18 @@ func (app *App) startupMessage(addr string, tls bool, pids string) {
 	logo += `%s  ____%s / ____(_) /_  ___  _____  %s` + "\n"
 	logo += `%s_____%s / /_  / / __ \/ _ \/ ___/  %s` + "\n"
 	logo += `%s  __%s / __/ / / /_/ /  __/ /      %s` + "\n"
-	logo += `%s    /_/   /_/_.___/\___/_/%s %s` + "\n"
-
+	logo += `%s    /_/   /_/_.___/\___/_/%s %s` + ""
+	logo += cRed + "v2 will be released on 15 September 2020!\nPlease visit https://gofiber.io/v2 for more information.\n" + cReset
 	host, port := parseAddr(addr)
+	padding := strconv.Itoa(len(host))
+	if len(host) <= 4 {
+		padding = "5"
+	}
 	var (
 		tlsStr       = "FALSE"
-		handlerCount = app.handlerCount
+		preforkStr   = "FALSE"
+		handlerCount = strconv.Itoa(app.handlerCount)
 		osName       = utils.ToUpper(runtime.GOOS)
-		memTotal     = utils.ByteSize(utils.MemoryTotal())
 		cpuThreads   = runtime.NumCPU()
 		pid          = os.Getpid()
 	)
@@ -682,27 +683,31 @@ func (app *App) startupMessage(addr string, tls bool, pids string) {
 	if tls {
 		tlsStr = "TRUE"
 	}
+	if app.Settings.Prefork {
+		preforkStr = "TRUE"
+	}
 	// tabwriter makes sure the spacing are consistent across different values
 	// colorable handles the escape sequence for stdout using ascii color codes
-	var out *tabwriter.Writer
+	host = fmt.Sprintf("%-"+padding+"s", host)
+	port = fmt.Sprintf("%-"+padding+"s", port)
+	tlsStr = fmt.Sprintf("%-"+padding+"s", tlsStr)
+	handlerCount = fmt.Sprintf("%-"+padding+"s", handlerCount)
+
+	app.out = colorable.NewColorableStdout()
 	// Check if colors are supported
 	if os.Getenv("TERM") == "dumb" ||
 		(!isatty.IsTerminal(os.Stdout.Fd()) && !isatty.IsCygwinTerminal(os.Stdout.Fd())) {
-		out = tabwriter.NewWriter(colorable.NewNonColorable(os.Stdout), 0, 0, 2, ' ', 0)
-	} else {
-		out = tabwriter.NewWriter(colorable.NewColorableStdout(), 0, 0, 2, ' ', 0)
+		app.out = colorable.NewNonColorable(os.Stdout)
 	}
 	// simple Sprintf function that defaults back to black
 	cyan := func(v interface{}) string {
 		return fmt.Sprintf("%s%v%s", cCyan, v, cBlack)
 	}
 	// Build startup banner
-	fmt.Fprintf(out, logo, cBlack, cBlack,
-		cCyan, cBlack, fmt.Sprintf(" HOST     %s\tOS      %s", cyan(host), cyan(osName)),
-		cCyan, cBlack, fmt.Sprintf(" PORT     %s\tTHREADS %s", cyan(port), cyan(cpuThreads)),
-		cCyan, cBlack, fmt.Sprintf(" TLS      %s\tMEM     %s", cyan(tlsStr), cyan(memTotal)),
-		cBlack, cyan(Version), fmt.Sprintf(" HANDLERS %s\t\t\t PID     %s%s%s\n", cyan(handlerCount), cyan(pid), pids, cReset),
+	fmt.Fprintf(app.out, logo, cBlack, cBlack,
+		cCyan, cBlack, fmt.Sprintf(" HOST     %s  OS      %s", cyan(host), cyan(osName)),
+		cCyan, cBlack, fmt.Sprintf(" PORT     %s  THREADS %s", cyan(port), cyan(cpuThreads)),
+		cCyan, cBlack, fmt.Sprintf(" TLS      %s  PREFORK %s", cyan(tlsStr), cyan(preforkStr)),
+		cBlack, cyan(Version), fmt.Sprintf(" HANDLERS %s  PID     %s%s%s\n", cyan(handlerCount), cyan(pid), pids, cReset),
 	)
-	// Write to io.write
-	_ = out.Flush()
 }
