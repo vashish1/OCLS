@@ -33,4 +33,3 @@ func TeachersLogin(c *fiber.Ctx) {
 	t.Token = token
 	c.Status(200).JSON(t)
 }
-

@@ -12,8 +12,8 @@ func Dashboard(c *fiber.Ctx) {
 	c.Set("Content-Type", "application/json")
 	var res models.LoginResponse
 	var data interface{}
-	id := c.Locals("uid")
-	typ := c.Locals("type")
+	id := fn0(c)
+	typ := fn1(c)
 
 	// fmt.Println("kjhg", typ, "\n")
 
@@ -31,4 +31,14 @@ func Dashboard(c *fiber.Ctx) {
 	res.Error = "Invalid request"
 	c.Status(400).JSON(res)
 	return
+}
+
+func fn1(c *fiber.Ctx) interface{} {
+	typ := c.Locals("type")
+	return typ
+}
+
+func fn0(c *fiber.Ctx) interface{} {
+	id := c.Locals("uid")
+	return id
 }
