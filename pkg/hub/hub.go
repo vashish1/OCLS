@@ -1,12 +1,14 @@
-package model
+package hub
 
 import (
 	"encoding/json"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/fasthttp/websocket"
+
+	"github.com/vashish1/OnlineClassPortal/pkg/models"
+	"github.com/vashish1/OnlineClassPortal/vendor/github.com/metaclips/LetsTalk/backend/values"
 )
 
 const (
@@ -25,28 +27,18 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-var HubConstruct = hub{
-	broadcast:  make(chan wsMessage),
-	register:   make(chan subscription),
-	unRegister: make(chan subscription),
-	users: wsUsers{
-		users: make(map[string]map[*connection]bool),
-		mutex: &sync.RWMutex{},
-	},
-}
+func (h *models.Hub) RegisterWS(ws *websocket.Conn, email string) {
+	c := &models.Connection{Send: make(chan []byte, 256), Ws: ws}
 
-func (h *hub) RegisterWS(ws *websocket.Conn, email string) {
-	c := &connection{send: make(chan []byte, 256), ws: ws}
-
-	s := subscription{conn: c, user: email}
-	HubConstruct.register <- s
+	s := models.Subscription{Conn: c, User: email}
+	HubConstruct.Register <- s
 	log.Infoln("user", email, "Connected")
 	go s.readPump(email)
 	go s.writePump()
 
 }
 
-func (h *hub) Run() {
+func (h *models.Hub) Run() {
 	Upgrader.CheckOrigin = func(r *http.Request) bool {
 		host := r.Header.Get("Origin")
 
@@ -62,77 +54,77 @@ func (h *hub) Run() {
 
 	for {
 		select {
-		case s := <-h.register:
-			h.users.mutex.Lock()
+		case s := <-h.Register:
+			h.Users.Mutex.Lock()
 
-			if _, exists := h.users.users[s.user]; !exists {
-				connections := make(map[*connection]bool)
+			if _, exists := h.Users.Users[s.User]; !exists {
+				connections := make(map[*models.Connection]bool)
 
-				h.users.users[s.user] = connections
+				h.Users.Users[s.User] = connections
 			}
 
-			h.users.users[s.user][s.conn] = true
+			h.Users.Users[s.User][s.Conn] = true
 
-			log.Infoln(s.user, "registered")
-			go broadcastOnlineStatusToAllUserRoom(s.user, true)
-			h.users.mutex.Unlock()
+			log.Infoln(s.User, "registered")
+			go broadcastOnlineStatusToAllUserRoom(s.User, true)
+			h.Users.Mutex.Unlock()
 
-		case s := <-h.unRegister:
-			h.users.mutex.Lock()
-			connections, exists := h.users.users[s.user]
+		case s := <-h.UnRegister:
+			h.Users.Mutex.Lock()
+			connections, exists := h.Users.Users[s.User]
 			if exists {
-				if _, ok := connections[s.conn]; ok {
-					delete(connections, s.conn)
-					close(s.conn.send)
+				if _, ok := connections[s.Conn]; ok {
+					delete(connections, s.Conn)
+					close(s.Conn.Send)
 					if len(connections) == 0 {
-						delete(h.users.users, s.user)
-						go broadcastOnlineStatusToAllUserRoom(s.user, false)
-						log.Infoln(s.user, "offline")
+						delete(h.Users.Users, s.User)
+						go broadcastOnlineStatusToAllUserRoom(s.User, false)
+						log.Infoln(s.User, "offline")
 					}
-					log.Infoln(s.user, "subscription removed")
+					log.Infoln(s.User, "subscription removed")
 				}
 			}
-			h.users.mutex.Unlock()
+			h.Users.Mutex.Unlock()
 
-		case m := <-h.broadcast:
-			h.users.mutex.RLock()
-			connections := h.users.users[m.user]
+		case m := <-h.Broadcast:
+			h.Users.Mutex.RLock()
+			connections := h.Users.Users[m.User]
 			for c := range connections {
 				select {
-				case c.send <- m.data:
+				case c.Send <- m.Data:
 				default:
-					close(c.send)
+					close(c.Send)
 					delete(connections, c)
 					if len(connections) == 0 {
-						h.users.mutex.Lock()
-						delete(h.users.users, m.user)
-						h.users.mutex.Unlock()
-						go broadcastOnlineStatusToAllUserRoom(m.user, false)
+						h.Users.Mutex.Lock()
+						delete(h.Users.Users, m.User)
+						h.Users.Mutex.Unlock()
+						go broadcastOnlineStatusToAllUserRoom(m.User, false)
 					}
 				}
 			}
-			h.users.mutex.RUnlock()
+			h.Users.Mutex.RUnlock()
 		}
 	}
 }
 
-func (h *hub) sendMessage(msg []byte, user string) {
-	m := wsMessage{msg, user}
-	HubConstruct.broadcast <- m
+func (h *models.Hub) sendMessage(msg []byte, user string) {
+	m := models.WsMessage{msg, user}
+	HubConstruct.Broadcast <- m
 }
 
 // WritePump pumps messages from the hub to the websocket connection.
-func (s *subscription) writePump() {
-	c := s.conn
+func (s *models.Subscription) writePump() {
+	c := s.Conn
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
-		c.ws.Close()
+		c.Ws.Close()
 	}()
 
 	for {
 		select {
-		case message, ok := <-c.send:
+		case message, ok := <-c.Send:
 			if !ok {
 				c.write(websocket.CloseMessage, []byte{})
 				return
@@ -151,34 +143,34 @@ func (s *subscription) writePump() {
 }
 
 // write writes a message with the given message type and payload.
-func (c *connection) write(mt int, payload []byte) error {
-	if err := c.ws.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+func (c *models.Connection) write(mt int, payload []byte) error {
+	if err := c.Ws.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
 		return err
 	}
 
-	return c.ws.WriteMessage(mt, payload)
+	return c.Ws.WriteMessage(mt, payload)
 }
 
 // ReadPump pumps messages from the websocket connection to the hub.
-func (s subscription) readPump(user string) {
-	c := s.conn
+func (s models.Subscription) readPump(user string) {
+	c := s.Conn
 
 	defer func() {
-		HubConstruct.unRegister <- s
-		c.ws.Close()
+		HubConstruct.UnRegister <- s
+		c.Ws.Close()
 	}()
 
-	c.ws.SetReadDeadline(time.Now().Add(pongWait))
+	c.Ws.SetReadDeadline(time.Now().Add(pongWait))
 
-	c.ws.SetPongHandler(
+	c.Ws.SetPongHandler(
 		func(string) error {
-			return c.ws.SetReadDeadline(time.Now().Add(pongWait))
+			return c.Ws.SetReadDeadline(time.Now().Add(pongWait))
 		})
 
 	for {
 		var err error
 		var msg messageBytes
-		_, msg, err = c.ws.ReadMessage()
+		_, msg, err = c.Ws.ReadMessage()
 
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
@@ -204,61 +196,63 @@ func (s subscription) readPump(user string) {
 			continue
 		}
 
-		switch data.MsgType {
-		// TODO: add support to remove message.
-		case values.WebsocketOpenMsgType:
-			handleLoadUserContent(user)
+		// 		switch data.MsgType {
+		// 		// TODO: add support to remove message.
+		// 		case values.WebsocketOpenMsgType:
+		// 			handleLoadUserContent(user)
 
-		case values.RequestMessages:
-			msg.handleRequestMessages(user)
+		// 		case values.RequestMessages:
+		// 			msg.handleRequestMessages(user)
 
-		case values.NewMessageMsgType:
-			msg.handleNewMessage()
+		// 		case values.NewMessageMsgType:
+		// 			msg.handleNewMessage()
 
-		case values.CreateRoomMsgType:
-			msg.handleCreateNewRoom()
+		// 		case values.CreateRoomMsgType:
+		// 			msg.handleCreateNewRoom()
 
-		case values.JoinRoomMsgType:
-			msg.handleUserAcceptRoomRequest()
+		// 		case values.JoinRoomMsgType:
+		// 			msg.handleUserAcceptRoomRequest()
 
-		case values.ExitRoomMsgType:
-			msg.handleExitRoom(user)
+		// 		case values.ExitRoomMsgType:
+		// 			msg.handleExitRoom(user)
 
-		case values.RequestUsersToJoinRoomMsgType:
-			msg.handleRequestUserToJoinRoom()
+		// 		case values.RequestUsersToJoinRoomMsgType:
+		// 			msg.handleRequestUserToJoinRoom()
 
-		case values.NewFileUploadMsgType:
-			msg.handleNewFileUpload()
+		// 		case values.NewFileUploadMsgType:
+		// 			msg.handleNewFileUpload()
 
-		case values.UploadFileChunkMsgType:
-			msg.handleUploadFileChunk()
+		// 		case values.UploadFileChunkMsgType:
+		// 			msg.handleUploadFileChunk()
 
-		case values.UploadFileSuccessMsgType:
-			msg.handleUploadFileUploadComplete()
+		// 		case values.UploadFileSuccessMsgType:
+		// 			msg.handleUploadFileUploadComplete()
 
-		case values.RequestDownloadMsgType:
-			msg.handleRequestDownload(user)
+		// 		case values.RequestDownloadMsgType:
+		// 			msg.handleRequestDownload(user)
 
-		case values.DownloadFileChunkMsgType:
-			msg.handleFileDownload(user)
+		// 		case values.DownloadFileChunkMsgType:
+		// 			msg.handleFileDownload(user)
 
-		case values.StartClassSession:
-			classSessions.startClassSession(msg, user)
+		// 		case values.StartClassSession:
+		// 			classSessions.startClassSession(msg, user)
 
-		case values.JoinClassSession:
-			classSessions.joinClassSession(msg, user)
+		// 		case values.JoinClassSession:
+		// 			classSessions.joinClassSession(msg, user)
 
-		case values.EndClassSession:
-			classSessions.endClassSession(user)
+		// 		case values.EndClassSession:
+		// 			classSessions.endClassSession(user)
 
-		case values.RenegotiateSDP:
-			sdpConstruct{}.acceptRenegotiation(msg)
+		// 		case values.RenegotiateSDP:
+		// 			sdpConstruct{}.acceptRenegotiation(msg)
 
-		case values.SearchUserMsgType:
-			handleSearchUser(data.SearchText, user)
+		// 		case values.SearchUserMsgType:
+		// 			handleSearchUser(data.SearchText, user)
 
-		default:
-			log.Println("Could not convert required type", data.MsgType)
-		}
+		// 		default:
+		// 			log.Println("Could not convert required type", data.MsgType)
+		// 		}
+		// 	}
+		// }
 	}
 }

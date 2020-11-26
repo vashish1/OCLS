@@ -1,15 +1,17 @@
 package models
 
 import (
+	"os"
 	"sync"
 	"time"
 
+	"github.com/at-wat/ebml-go/webm"
+	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/files"
+	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/sharing"
 	"github.com/fasthttp/websocket"
 	"github.com/pion/webrtc/v2"
+	"github.com/pion/webrtc/v2/pkg/media/samplebuilder"
 )
-
-type Hub struct {
-}
 
 type CookieDetail struct {
 	Email      string
@@ -33,17 +35,17 @@ type User struct {
 	// ID should either be users matric or leading email stripping @....
 	Password         []byte        `bson:"password" json:"-"`
 	PasswordInString string        `bson:"-" json:"password"`
-	RoomsJoined      []roomsJoined `bson:"roomsJoined" json:"roomsJoined"`
-	JoinRequest      []joinRequest `bson:"joinRequest" json:"joinRequest"`
+	RoomsJoined      []RoomsJoined `bson:"roomsJoined" json:"roomsJoined"`
+	JoinRequest      []JoinRequest `bson:"joinRequest" json:"joinRequest"`
 	UUID             string        `bson:"loginUUID" json:"uuid"`
 }
 
-type roomsJoined struct {
+type RoomsJoined struct {
 	RoomID   string `bson:"roomID" json:"roomID"`
 	RoomName string `bson:"roomName" json:"roomName"`
 }
 
-type joinRequest struct {
+type JoinRequest struct {
 	RoomID             string   `bson:"_id" json:"roomID"`
 	RoomName           string   `bson:"roomName" json:"roomName"`
 	RequestingUserName string   `bson:"requestingUserName" json:"requestingUserName"`
@@ -55,7 +57,7 @@ type joinRequest struct {
 // Message count is used to track amount of messages sent by users in room,
 // this helps with partitioning messages on retrieval, messages are retrieved in 20s on request.
 // FirstLoad is specified if user initially wants to retrieve room messages from frontend.
-type room struct {
+type Room struct {
 	RoomID          string    `bson:"_id" json:"roomID,omitempty"`
 	RoomName        string    `bson:"roomName" json:"roomName,omitempty"`
 	RoomIcon        string    `bson:"roomIcon" json:"roomIcon"`
@@ -65,7 +67,7 @@ type room struct {
 	FirstLoad       bool      `bson:"-" json:"firstLoad,omitempty"`
 }
 
-type associateStatus struct {
+type AssociateStatus struct {
 	Name     string `json:"name"`
 	IsOnline bool   `json:"isOnline"`
 }
@@ -86,7 +88,7 @@ type Message struct {
 	MessageType string `bson:"-" json:"msgType,omitempty"`
 }
 
-type joined struct {
+type Joined struct {
 	RoomID      string `json:"roomID"`
 	RoomName    string `json:"roomName"`
 	Email       string `json:"userID"`
@@ -96,14 +98,14 @@ type joined struct {
 	MessageType string `bson:"-" json:"msgType"`
 }
 
-type newRoomRequest struct {
+type NewRoomRequest struct {
 	Email       string `json:"userID"`
 	RoomName    string `json:"roomName"`
 	MessageType string `bson:"-" json:"msgType"`
 }
 
 // File save files making sure they are distinct.
-type file struct {
+type File struct {
 	MsgType        string `bson:"-" json:"msgType,omitempty"`
 	UniqueFileHash string `bson:"_id" json:"fileHash"`
 	FileName       string `bson:"fileName" json:"fileName"`
@@ -113,7 +115,7 @@ type file struct {
 	Chunks         int    `bson:"chunks,omitempty" json:"chunks"`
 }
 
-type fileChunks struct {
+type FileChunks struct {
 	MsgType            string `bson:"-" json:"msgType,omitempty"`
 	FileName           string `bson:"-" json:"fileName,omitempty"`
 	UniqueFileHash     string `bson:"_id" json:"fileHash,omitempty"`
@@ -122,42 +124,42 @@ type fileChunks struct {
 	ChunkIndex         int    `bson:"chunkIndex" json:"chunkIndex"`
 }
 
-type wsMessage struct {
-	data []byte
-	user string
+type WsMessage struct {
+	Data []byte
+	User string
 }
 
 // Connection is an middleman between the websocket connection and the hub.
-type connection struct {
-	ws *websocket.Conn
+type Connection struct {
+	Ws *websocket.Conn
 
-	send chan []byte
+	Send chan []byte
 }
 
-type subscription struct {
-	conn *connection
-	user string
+type Subscription struct {
+	Conn *Connection
+	User string
 }
 
 // Hub maintains the set of active connections and broadcasts messages to the
 // connections.
-type hub struct {
+type Hub struct {
 	// Registered connections.
-	users wsUsers
+	Users WsUsers
 
 	// Inbound messages from the connections.
-	broadcast chan wsMessage
+	Broadcast chan WsMessage
 
 	// Register requests from the connections.
-	register chan subscription
+	Register chan Subscription
 
 	// Unregister requests from connections.
-	unRegister chan subscription
+	UnRegister chan Subscription
 }
 
-type wsUsers struct {
-	users map[string]map[*connection]bool
-	mutex *sync.RWMutex
+type WsUsers struct {
+	Users map[string]map[*Connection]bool
+	Mutex *sync.RWMutex
 }
 
 // classSessionPeerConnections allows class session video calls where a publisher
@@ -168,14 +170,14 @@ type wsUsers struct {
 // If UUID to current VIDEO track is nil. It indicates the room session is over.
 // If publisher logs off, all peer connections related to that room is closed.
 // Mutexes is integrated with video, audio and peerconnections to ensure data race free.
-type classSessionPeerConnections struct {
+type ClassSessionPeerConnections struct {
 	api *webrtc.API
 
 	publisherVideoTracks  map[string]*webrtc.Track // mapped sessionID to track
 	publisherTrackMutexes *sync.RWMutex
 
 	audioTrack        map[string]*webrtc.Track // mapped userID to track
-	audioTrackSender  map[*webrtc.Track][]rtpSenderData
+	audioTrackSender  map[*webrtc.Track][]RtpSenderData
 	audioTrackMutexes *sync.RWMutex
 
 	peerConnection        map[string]*webrtc.PeerConnection // peerConnection is mapped user to peerconnection.
@@ -188,19 +190,19 @@ type classSessionPeerConnections struct {
 // rtpSenderData saves user RTPSender.
 // On remove track, users can easily map all audio track to its senders.
 // userID maps sender to it's peerconnection.
-type rtpSenderData struct {
-	userID string
-	sender *webrtc.RTPSender
+type RtpSenderData struct {
+	UserID string
+	Sender *webrtc.RTPSender
 }
 
-// type webmWriter struct {
-// 	fileName                       string
-// 	audioWriter, videoWriter       webm.BlockWriteCloser
-// 	audioBuilder, videoBuilder     *samplebuilder.SampleBuilder
-// 	audioTimestamp, videoTimestamp uint32
-// }
+type WebmWriter struct {
+	FileName                       string
+	AudioWriter, videoWriter       webm.BlockWriteCloser
+	AudioBuilder, videoBuilder     *samplebuilder.SampleBuilder
+	AudioTimestamp, videoTimestamp uint32
+}
 
-type sdpConstruct struct {
+type SdpConstruct struct {
 	MsgType        string `json:"msgType"`
 	ClassSessionID string `json:"sessionID"`
 	AuthorName     string `json:"name"`
@@ -209,15 +211,15 @@ type sdpConstruct struct {
 	RoomID         string `json:"roomID"`
 	SDP            string `json:"sdp"`
 
-	peerConnection *webrtc.PeerConnection
+	PeerConnection *webrtc.PeerConnection
 }
 
-// type dropboxUploader struct {
-// 	uploadClient       files.Client
-// 	sharableLinkClient sharing.Client
-// 	fileUploadInfo     *files.CommitInfo
+type DropboxUploader struct {
+	UploadClient       files.Client
+	SharableLinkClient sharing.Client
+	FileUploadInfo     *files.CommitInfo
 
-// 	file         *os.File
-// 	fileFullPath string
-// 	fileSize     int64
-// }
+	File         *os.File
+	FileFullPath string
+	FileSize     int64
+}

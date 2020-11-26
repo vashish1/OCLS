@@ -2,6 +2,11 @@
 cloud.google.com/go/compute/metadata
 # github.com/andybalholm/brotli v1.0.0
 github.com/andybalholm/brotli
+# github.com/at-wat/ebml-go v0.11.0
+## explicit
+github.com/at-wat/ebml-go
+github.com/at-wat/ebml-go/mkvcore
+github.com/at-wat/ebml-go/webm
 # github.com/aws/aws-sdk-go v1.34.28
 github.com/aws/aws-sdk-go/aws
 github.com/aws/aws-sdk-go/aws/awserr
@@ -25,6 +30,20 @@ github.com/cheekybits/genny/generic
 # github.com/dgrijalva/jwt-go v3.2.0+incompatible
 ## explicit
 github.com/dgrijalva/jwt-go
+# github.com/dropbox/dropbox-sdk-go-unofficial v5.6.0+incompatible
+## explicit
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/async
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/auth
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/common
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/file_properties
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/files
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/seen_state
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/sharing
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/team_common
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/team_policies
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/users
+github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/users_common
 # github.com/fasthttp/websocket v1.4.3
 ## explicit
 github.com/fasthttp/websocket
@@ -105,6 +124,7 @@ github.com/pion/randutil
 # github.com/pion/rtcp v1.2.3
 github.com/pion/rtcp
 # github.com/pion/rtp v1.6.0
+## explicit
 github.com/pion/rtp
 github.com/pion/rtp/codecs
 # github.com/pion/sctp v1.7.6
@@ -129,15 +149,20 @@ github.com/pion/turn/v2/internal/ipnet
 github.com/pion/turn/v2/internal/proto
 github.com/pion/turn/v2/internal/server
 # github.com/pion/webrtc/v2 v2.2.17
+## explicit
 github.com/pion/webrtc/v2
 github.com/pion/webrtc/v2/internal/mux
 github.com/pion/webrtc/v2/internal/util
 github.com/pion/webrtc/v2/pkg/media
+github.com/pion/webrtc/v2/pkg/media/samplebuilder
 github.com/pion/webrtc/v2/pkg/rtcerr
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/savsgio/gotils v0.0.0-20200608150037-a5f6f5aef16c
 github.com/savsgio/gotils
+# github.com/sirupsen/logrus v1.7.0
+## explicit
+github.com/sirupsen/logrus
 # github.com/valyala/bytebufferpool v1.0.0
 github.com/valyala/bytebufferpool
 # github.com/valyala/fasthttp v1.16.0

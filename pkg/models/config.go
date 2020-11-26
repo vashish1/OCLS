@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-type configuration struct {
+type Configuration struct {
 	TLS struct {
 		CertPath string
 		KeyPath  string
@@ -28,7 +28,7 @@ type configuration struct {
 }
 
 // Config contains application environment variables.
-var Config configuration
+var Config Configuration
 
 // LoadConfiguration loads all application environment variables.
 func LoadConfiguration(configPath string) error {
