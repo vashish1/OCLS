@@ -15,6 +15,7 @@ const (
 	MessageTypeInfo             = "Info"
 	MessageTypeClassSession     = "ClassSession"
 	MessageTypeClassSessionLink = "MessageTypeClassSessionLink"
+	MessageTypeShareScreen      = "ShareScreen"
 )
 
 // All websocket message types both clients and server
@@ -47,6 +48,9 @@ const (
 	RenegotiateSDP    = "RenegotiateSDP"
 	ClassSessionError = "ClassSessionError"
 	EndClassSession   = "EndClassSession"
+
+	ShareScreenEnable  = "ShareScreenStart"
+	ShareScreenDisable = "ShareScreenDisable"
 )
 
 const (

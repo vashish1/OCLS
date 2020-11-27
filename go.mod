@@ -9,7 +9,9 @@ require (
 	github.com/fasthttp/websocket v1.4.3
 	github.com/gofiber/cors v0.2.2
 	github.com/gofiber/fiber v1.14.6
+	github.com/google/uuid v1.1.2
 	github.com/metaclips/LetsTalk v0.2.0
+	github.com/pion/rtcp v1.2.3
 	github.com/pion/rtp v1.6.0
 	github.com/pion/webrtc/v2 v2.2.17
 	github.com/sirupsen/logrus v1.7.0
@@ -17,5 +19,6 @@ require (
 	golang.org/x/crypto v0.0.0-20201117144127-c1f2f97bffc9
 	golang.org/x/net v0.0.0-20200822124328-c89045814202
 	golang.org/x/oauth2 v0.0.0-20201109201403-9fd604954f58
+	golang.org/x/sys v0.0.0-20201126233918-771906719818 // indirect
 	google.golang.org/api v0.35.0
 )

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/fasthttp/websocket"
-
+     log "github.com/sirupsen/logrus"
 	"github.com/vashish1/OnlineClassPortal/pkg/models"
-	"github.com/vashish1/OnlineClassPortal/vendor/github.com/metaclips/LetsTalk/backend/values"
+	// "github.com/vashish1/OnlineClassPortal/vendor/github.com/metaclips/LetsTalk/backend/values"
 )
 
 const (
@@ -27,18 +27,20 @@ var Upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func (h *models.Hub) RegisterWS(ws *websocket.Conn, email string) {
+func (h *models.Hub) RegisterWS(ws *websocket.Conn, name string) {
 	c := &models.Connection{Send: make(chan []byte, 256), Ws: ws}
 
-	s := models.Subscription{Conn: c, User: email}
+	s := models.Subscription{Conn: c, User: name}
 	HubConstruct.Register <- s
-	log.Infoln("user", email, "Connected")
-	go s.readPump(email)
+	log.Infoln("user", name, "Connected")
+	go s.readPump(name)
 	go s.writePump()
 
 }
 
 func (h *models.Hub) Run() {
+
+	//what is the use of checking origin here? ad how is it accessing the request(r) without passing it.
 	Upgrader.CheckOrigin = func(r *http.Request) bool {
 		host := r.Header.Get("Origin")
 
@@ -55,6 +57,7 @@ func (h *models.Hub) Run() {
 	for {
 		select {
 		case s := <-h.Register:
+			//how does a mutex.lock work in here and the benefits?
 			h.Users.Mutex.Lock()
 
 			if _, exists := h.Users.Users[s.User]; !exists {
@@ -93,6 +96,7 @@ func (h *models.Hub) Run() {
 				select {
 				case c.Send <- m.Data:
 				default:
+					//what are you doing here? why deleting the connection
 					close(c.Send)
 					delete(connections, c)
 					if len(connections) == 0 {
@@ -116,6 +120,7 @@ func (h *models.Hub) sendMessage(msg []byte, user string) {
 // WritePump pumps messages from the hub to the websocket connection.
 func (s *models.Subscription) writePump() {
 	c := s.Conn
+	//WHat is the use of ticker here? also what is ping and pong 
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
 		ticker.Stop()
@@ -196,63 +201,63 @@ func (s models.Subscription) readPump(user string) {
 			continue
 		}
 
-		// 		switch data.MsgType {
-		// 		// TODO: add support to remove message.
-		// 		case values.WebsocketOpenMsgType:
-		// 			handleLoadUserContent(user)
+				switch data.MsgType {
+				// TODO: add support to remove message.
+				case values.WebsocketOpenMsgType:
+					handleLoadUserContent(user)
 
-		// 		case values.RequestMessages:
-		// 			msg.handleRequestMessages(user)
+				case values.RequestMessages:
+					msg.handleRequestMessages(user)
 
-		// 		case values.NewMessageMsgType:
-		// 			msg.handleNewMessage()
+				case values.NewMessageMsgType:
+					msg.handleNewMessage()
 
-		// 		case values.CreateRoomMsgType:
-		// 			msg.handleCreateNewRoom()
+				case values.CreateRoomMsgType:
+					msg.handleCreateNewRoom()
 
-		// 		case values.JoinRoomMsgType:
-		// 			msg.handleUserAcceptRoomRequest()
+				case values.JoinRoomMsgType:
+					msg.handleUserAcceptRoomRequest()
 
-		// 		case values.ExitRoomMsgType:
-		// 			msg.handleExitRoom(user)
+				case values.ExitRoomMsgType:
+					msg.handleExitRoom(user)
 
-		// 		case values.RequestUsersToJoinRoomMsgType:
-		// 			msg.handleRequestUserToJoinRoom()
+				case values.RequestUsersToJoinRoomMsgType:
+					msg.handleRequestUserToJoinRoom()
 
-		// 		case values.NewFileUploadMsgType:
-		// 			msg.handleNewFileUpload()
+				case values.NewFileUploadMsgType:
+					msg.handleNewFileUpload()
 
-		// 		case values.UploadFileChunkMsgType:
-		// 			msg.handleUploadFileChunk()
+				case values.UploadFileChunkMsgType:
+					msg.handleUploadFileChunk()
 
-		// 		case values.UploadFileSuccessMsgType:
-		// 			msg.handleUploadFileUploadComplete()
+				case values.UploadFileSuccessMsgType:
+					msg.handleUploadFileUploadComplete()
 
-		// 		case values.RequestDownloadMsgType:
-		// 			msg.handleRequestDownload(user)
+				case values.RequestDownloadMsgType:
+					msg.handleRequestDownload(user)
 
-		// 		case values.DownloadFileChunkMsgType:
-		// 			msg.handleFileDownload(user)
+				case values.DownloadFileChunkMsgType:
+					msg.handleFileDownload(user)
 
-		// 		case values.StartClassSession:
-		// 			classSessions.startClassSession(msg, user)
+				case values.StartClassSession:
+					classSessions.startClassSession(msg, user)
 
-		// 		case values.JoinClassSession:
-		// 			classSessions.joinClassSession(msg, user)
+				case values.JoinClassSession:
+					classSessions.joinClassSession(msg, user)
 
-		// 		case values.EndClassSession:
-		// 			classSessions.endClassSession(user)
+				case values.EndClassSession:
+					classSessions.endClassSession(user)
 
-		// 		case values.RenegotiateSDP:
-		// 			sdpConstruct{}.acceptRenegotiation(msg)
+				case values.RenegotiateSDP:
+					sdpConstruct{}.acceptRenegotiation(msg)
 
-		// 		case values.SearchUserMsgType:
-		// 			handleSearchUser(data.SearchText, user)
+				case values.SearchUserMsgType:
+					handleSearchUser(data.SearchText, user)
 
-		// 		default:
-		// 			log.Println("Could not convert required type", data.MsgType)
-		// 		}
-		// 	}
-		// }
+				default:
+					log.Println("Could not convert required type", data.MsgType)
+				}
+			}
+		}
 	}
 }
