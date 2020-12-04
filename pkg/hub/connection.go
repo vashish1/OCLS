@@ -10,10 +10,9 @@ import (
 	"github.com/google/uuid"
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v2"
+	"github.com/vashish1/OnlineClassPortal/pkg/models"
 
 	log "github.com/sirupsen/logrus"
-
-	"github.com/metaclips/LetsTalk/backend/values"
 )
 
 func init() {
@@ -27,12 +26,12 @@ func init() {
 
 var (
 	// Create a MediaEngine object to configure the supported codec
-	classSessions = classSessionPeerConnections{
+	classSessions = ClassSessionPeerConnections{
 		publisherVideoTracks:  make(map[string]*webrtc.Track),
 		publisherTrackMutexes: &sync.RWMutex{},
 
 		audioTrack:        make(map[string]*webrtc.Track),
-		audioTrackSender:  make(map[*webrtc.Track][]rtpSenderData),
+		audioTrackSender:  make(map[*webrtc.Track][]RtpSenderData),
 		audioTrackMutexes: &sync.RWMutex{},
 
 		peerConnection:        make(map[string]*webrtc.PeerConnection),
@@ -44,9 +43,9 @@ var (
 )
 
 // Starts a class session with a single publisher and multiple subscribers.
-func (s *classSessionPeerConnections) startClassSession(msg []byte, user string) {
+func (s *ClassSessionPeerConnections) startClassSession(msg []byte, user string) {
 	sessionID := uuid.New().String()
-	sdp := sdpConstruct{}
+	sdp := SdpConstruct{}
 
 	if err := json.Unmarshal(msg, &sdp); err != nil {
 		// Send back a CreateSessionError indicating user already in a session.
@@ -66,7 +65,7 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 	}
 	s.peerConnectionMutexes.RUnlock()
 
-	peerConnection, err := classSessions.api.NewPeerConnection(values.PeerConnectionConfig)
+	peerConnection, err := classSessions.api.NewPeerConnection(models.PeerConnectionConfig)
 	if err != nil {
 		log.Errorln("unable to create a peerconnection", err)
 		onSessionError(user, "Unable to create peerconnection")
@@ -84,8 +83,8 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 	s.connectedUsers[sessionID] = []string{sdp.UserID}
 	s.connectedUsersMutex.Unlock()
 
-	var videoAudioWriter *webmWriter
-	if values.Config.EnableClassSessionRecord {
+	var videoAudioWriter *WebmWriter
+	if models.EnableClassSessionRecord {
 		videoAudioWriter = newWebmWriter(sessionID + ".webm")
 	}
 
@@ -122,13 +121,13 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 					link = link[:len(link)-1] + "1"
 				}
 
-				message := Message{
+				message := models.Message{
 					RoomID:      sdp.RoomID,
 					Name:        sdp.AuthorName,
 					Message:     link,
 					UserID:      sdp.UserID,
-					Type:        values.MessageTypeClassSessionLink,
-					MessageType: values.MessageTypeClassSessionLink,
+					Type:        models.MessageTypeClassSessionLink,
+					MessageType: models.MessageTypeClassSessionLink,
 					Hash:        sdp.ClassSessionID,
 				}
 
@@ -201,7 +200,7 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 
 			// Send a PLI on an interval so that the publisher is pushing a keyframe every rtcpPLIInterval
 			go func() {
-				ticker := time.NewTicker(values.RtcpPLIInterval)
+				ticker := time.NewTicker(models.RtcpPLIInterval)
 				for range ticker.C {
 					err := peerConnection.WriteRTCP([]rtcp.Packet{&rtcp.PictureLossIndication{MediaSSRC: videoTrack.SSRC()}})
 					if err != nil {
@@ -223,7 +222,7 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 					break
 				}
 
-				if values.Config.EnableClassSessionRecord {
+				if models.Config.EnableClassSessionRecord {
 					videoAudioWriter.pushVP8(rtp)
 				}
 			}
@@ -282,10 +281,10 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 	}
 
 	// Broadcast class session to room.
-	sdp.MsgType = values.MessageTypeClassSession
-	values.MapEmailToName.Mutex.RLock()
-	sdp.AuthorName = values.MapEmailToName.Mapper[sdp.UserID]
-	values.MapEmailToName.Mutex.RUnlock()
+	sdp.MsgType = models.MessageTypeClassSession
+	models.MapEmailToName.Mutex.RLock()
+	sdp.AuthorName = models.MapEmailToName.Mapper[sdp.UserID]
+	models.MapEmailToName.Mutex.RUnlock()
 
 	jsonContent, err := json.Marshal(sdp)
 	if err != nil {
@@ -297,11 +296,11 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 	}
 
 	// Send back answer SDP to client and also class notification to all users in room.
-	roomUsers, err := Message{
+	roomUsers, err := models.Message{
 		RoomID: sdp.RoomID,
 		Name:   sdp.AuthorName,
 		UserID: sdp.UserID,
-		Type:   values.MessageTypeClassSession,
+		Type:   models.MessageTypeClassSession,
 		Hash:   sdp.ClassSessionID,
 	}.saveMessageContent()
 
@@ -318,8 +317,8 @@ func (s *classSessionPeerConnections) startClassSession(msg []byte, user string)
 	}
 }
 
-func (s *classSessionPeerConnections) joinClassSession(msg []byte, user string) {
-	sdp := sdpConstruct{}
+func (s *ClassSessionPeerConnections) joinClassSession(msg []byte, user string) {
+	sdp := SdpConstruct{}
 	if err := json.Unmarshal(msg, &sdp); err != nil {
 		log.Errorln("unable to marshal json on join session", err)
 		onSessionError(user, "Unable to retrieve class session details.")
@@ -385,18 +384,18 @@ func (s *classSessionPeerConnections) joinClassSession(msg []byte, user string) 
 
 			for _, audioTrackSender := range audioTracksSender {
 				// Remove current subscriber track from all registered tracks in session.
-				if pc := s.peerConnection[audioTrackSender.userID]; pc != nil {
-					if err := pc.RemoveTrack(audioTrackSender.sender); err != nil {
+				if pc := s.peerConnection[audioTrackSender.UserID]; pc != nil {
+					if err := pc.RemoveTrack(audioTrackSender.Sender); err != nil {
 						log.Errorln("error removing tracks", err)
 					}
 
-					offerConstruct := sdpConstruct{
-						peerConnection: pc,
+					offerConstruct := SdpConstruct{
+						PeerConnection: pc,
 						ClassSessionID: sdp.ClassSessionID,
-						UserID:         audioTrackSender.userID,
+						UserID:         audioTrackSender.UserID,
 					}
 
-					if err = offerConstruct.sendRenegotiateOffer(); err != nil {
+					if err = offerConstruct.SendRenegotiateOffer(); err != nil {
 						log.Errorln("failed to send renegotiation offer, closing now", err)
 					}
 				}
@@ -483,9 +482,9 @@ func (s *classSessionPeerConnections) joinClassSession(msg []byte, user string) 
 						continue
 					}
 
-					senderData := rtpSenderData{
-						userID: user, // Label has users ID.
-						sender: sender,
+					senderData := RtpSenderData{
+						UserID: user, // Label has users ID.
+					    Sender: sender,
 					}
 
 					s.audioTrackSender[track] = append(s.audioTrackSender[track], senderData)
@@ -508,15 +507,15 @@ func (s *classSessionPeerConnections) joinClassSession(msg []byte, user string) 
 					}
 
 					// Save other users sender track.
-					senderData := rtpSenderData{
+					senderData := RtpSenderData{
 						userID: otherConnectedUser,
 						sender: sender,
 					}
 
 					s.audioTrackSender[audioTrack] = append(s.audioTrackSender[audioTrack], senderData)
 
-					offerConstruct := sdpConstruct{peerConnection: pc, ClassSessionID: sdp.ClassSessionID, UserID: otherConnectedUser}
-					if err = offerConstruct.sendRenegotiateOffer(); err != nil {
+					offerConstruct := SdpConstruct{PeerConnection: pc, ClassSessionID: sdp.ClassSessionID, UserID: otherConnectedUser}
+					if err = offerConstruct.SendRenegotiateOffer(); err != nil {
 						// If error is nil, there's still a chance to be corrected on the next renegotiation.
 						log.Errorln("failed to send renegotiation offer, closing now", err)
 					}
@@ -524,7 +523,7 @@ func (s *classSessionPeerConnections) joinClassSession(msg []byte, user string) 
 			}
 
 			// Renegotiate with self.
-			offerConstruct := sdpConstruct{peerConnection: peerConnection, ClassSessionID: sdp.ClassSessionID, UserID: sdp.UserID}
+			offerConstruct := SdpConstruct{peerConnection: peerConnection, ClassSessionID: sdp.ClassSessionID, UserID: sdp.UserID}
 			if err = offerConstruct.sendRenegotiateOffer(); err != nil {
 				log.Errorln("failed to send renegotiation offer, closing now", err)
 			}
@@ -556,14 +555,14 @@ func (s *classSessionPeerConnections) joinClassSession(msg []byte, user string) 
 		log.Errorln("subscriber audio track exited.")
 	})
 
-	sdp.peerConnection = peerConnection
-	if err = sdp.acceptNegotiateOffer(); err != nil {
+	sdp.PeerConnection = peerConnection
+	if err = sdp.AcceptNegotiateOffer(); err != nil {
 		onSessionError(user, "Unable to initiate peer negotiation.")
 		log.Errorln("unable to negotiate on join class session", err)
 	}
 }
 
-func (s *classSessionPeerConnections) endClassSession(author string) {
+func (s *ClassSessionPeerConnections) endClassSession(author string) {
 	s.peerConnectionMutexes.Lock()
 	peerConnection, ok := s.peerConnection[author]
 	if !ok {
@@ -602,7 +601,7 @@ func (sdp sdpConstruct) acceptNegotiateOffer() error {
 
 	sdp = sdpConstruct{}
 	sdp.SDP = answer.SDP
-	sdp.MsgType = values.NegotiateSDP
+	sdp.MsgType = models.NegotiateSDP
 
 	jsonContent, err := json.Marshal(sdp)
 	if err != nil {
@@ -630,7 +629,7 @@ func (sdp sdpConstruct) sendRenegotiateOffer() error {
 		SessionID string `json:"sessionID"`
 		SDP       string `json:"sdp"`
 	}{
-		values.RenegotiateSDP,
+		models.RenegotiateSDP,
 		sdp.ClassSessionID,
 		offer.SDP,
 	}
@@ -684,7 +683,7 @@ func onSessionError(user, errString string) {
 		MsgType      string `json:"msgType"`
 		ErrorDetails string `json:"errorDetails"`
 	}{
-		values.ClassSessionError,
+		models.ClassSessionError,
 		errString,
 	}
 
@@ -693,5 +692,5 @@ func onSessionError(user, errString string) {
 		log.Println("unable to send session error", err)
 	}
 
-	HubConstruct.sendMessage(content, user)
+	HubConstruct.SendMessage(content, user)
 }

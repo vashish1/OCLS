@@ -4,7 +4,6 @@ package ice
 
 import (
 	"context"
-	"math/rand"
 	"net"
 	"strings"
 	"sync"
@@ -50,7 +49,7 @@ const (
 	maxBufferSize = 1000 * 1000 // 1MB
 
 	// wait time before binding requests can be deleted
-	maxBindingRequestTimeout = 500 * time.Millisecond
+	maxBindingRequestTimeout = 4000 * time.Millisecond
 )
 
 var (
@@ -311,8 +310,14 @@ func NewAgent(config *AgentConfig) (*Agent, error) {
 	}
 
 	// local username fragment and password
-	localUfrag := randSeq(16)
-	localPwd := randSeq(32)
+	localUfrag, err := generateUFrag()
+	if err != nil {
+		return nil, err
+	}
+	localPwd, err := generatePwd()
+	if err != nil {
+		return nil, err
+	}
 
 	if config.LocalUfrag != "" {
 		if len([]rune(config.LocalUfrag))*8 < 24 {
@@ -368,7 +373,7 @@ func NewAgent(config *AgentConfig) (*Agent, error) {
 	}
 
 	a := &Agent{
-		tieBreaker:             rand.New(rand.NewSource(time.Now().UnixNano())).Uint64(),
+		tieBreaker:             globalMathRandomGenerator.Uint64(),
 		lite:                   config.Lite,
 		gatheringState:         GatheringStateNew,
 		connectionState:        ConnectionStateNew,
@@ -753,11 +758,10 @@ func (a *Agent) validateSelectedPair() bool {
 		return false
 	}
 
-	if (a.connectionTimeout != 0) &&
-		(time.Since(selectedPair.remote.LastReceived()) > a.connectionTimeout) {
-		a.setSelectedPair(nil)
+	if (a.connectionTimeout != 0) && (time.Since(selectedPair.remote.LastReceived()) > a.connectionTimeout) {
 		a.updateConnectionState(ConnectionStateDisconnected)
-		return false
+	} else {
+		a.updateConnectionState(ConnectionStateConnected)
 	}
 
 	return true

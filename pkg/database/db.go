@@ -47,6 +47,27 @@ func VideoDb() *mongo.Collection {
 	return cm
 }
 
+func RoomDb() *mongo.Collection {
+	client := ConnectDb()
+	cm := client.Database("E-Vidya").Collection("Rooms")
+	return cm
+}
+func MessageDb() *mongo.Collection {
+	client := ConnectDb()
+	cm := client.Database("E-Vidya").Collection("Message")
+	return cm
+}
+func FilesDb() *mongo.Collection {
+	client := ConnectDb()
+	cm := client.Database("E-Vidya").Collection("Files")
+	return cm
+}
+func ChunksDb() *mongo.Collection {
+	client := ConnectDb()
+	cm := client.Database("E-Vidya").Collection("FileChunks")
+	return cm
+}
+
 func InsertIntoDb(c *mongo.Collection, data interface{}) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -58,26 +79,3 @@ func InsertIntoDb(c *mongo.Collection, data interface{}) bool {
 	fmt.Print("object id of inserted Document", result)
 	return true
 }
-
-// func UpdateMobile(c *mongo.Collection, data models.Number) bool {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-// 	defer cancel()
-// 	filter := bson.D{
-// 		{"uid", data.Uid},
-// 	}
-// 	update := bson.D{
-// 		{
-// 			"$set", bson.D{{"mobile_no", data.Mobile_no}},
-// 		},
-// 	}
-// 	updateResult, err := c.UpdateOne(ctx, filter, update)
-// 	if err != nil {
-// 		return false
-// 	}
-
-// 	if updateResult.ModifiedCount == 0 {
-// 		return false
-// 	}
-// 	fmt.Printf("Matched %v documents and updated %v documents.\n", updateResult.MatchedCount, updateResult.ModifiedCount)
-// 	return true
-// }

@@ -9,8 +9,7 @@ import (
 	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/files"
 	"github.com/dropbox/dropbox-sdk-go-unofficial/dropbox/sharing"
-
-	"github.com/metaclips/LetsTalk/backend/values"
+	"github.com/vashish1/OnlineClassPortal/pkg/models"
 )
 
 // maxDropboxUpload is 2MiB
@@ -18,6 +17,44 @@ const (
 	maxDropboxUpload = 2 * 1024 * 1024
 	fileUploadPath   = "/class_sessions/"
 )
+
+func (s WebmWriter) getVideoFileSharableLink() (string, error) {
+	if models.Config.DropboxToken != "" {
+		dropBoxUploader, err := newDropboxUploader(s.FileName)
+		if err != nil {
+			log.Errorln("unable to initialize dropbox uploader", err)
+			return "", err
+		}
+
+		link, err := dropBoxUploader.dropboxFileUploader()
+		if err != nil {
+			log.Errorln("unable to get dropbox sharable link", err)
+			return "", err
+		}
+
+		log.Infoln("file uploaded to file server")
+
+		return link, nil
+	}
+
+	return "", nil
+}
+
+func (s WebmWriter) uploadToDB() {
+	defer func() {
+		if err := os.Remove(s.FileName); err != nil {
+			log.Errorln("unable to remove file", err)
+		}
+	}()
+
+	if err := uploadFileGridFS(s.FileName); err != nil {
+		log.Errorln("error saving file to DB", err)
+		return
+	}
+
+	log.Println("File uploaded to DB")
+}
+
 
 // newDropboxUploader uploads file to /class_session path on dropbox
 func newDropboxUploader(filePath string) (*dropboxUploader, error) {
@@ -122,5 +159,5 @@ func (d *dropboxUploader) getSharableLink() (string, error) {
 		return sl.Url, nil
 	}
 
-	return "", values.ErrFileUpload
+	return "", models.ErrFileUpload
 }

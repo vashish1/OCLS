@@ -1,515 +1,528 @@
-package request
+package requests
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"time"
+	"io/ioutil"
+	"net/http"
+	"strings"
 
+	"github.com/google/uuid"
 	log "github.com/sirupsen/logrus"
-
+	"github.com/vashish1/OnlineClassPortal/pkg/database"
+	"github.com/vashish1/OnlineClassPortal/pkg/models"
+	"github.com/vashish1/OnlineClassPortal/vendor/go.mongodb.org/mongo-driver/bson"
+	"github.com/vashish1/OnlineClassPortal/vendor/go.mongodb.org/mongo-driver/mongo/options"
+	"github.com/vashish1/OnlineClassPortal/vendor/golang.org/x/crypto/bcrypt"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	"github.com/metaclips/LetsTalk/backend/values"
 )
 
-type messageBytes []byte
-
-// handleCreateNewRoom creates a new room for user.
-func (msg messageBytes) handleCreateNewRoom() {
-	var newRoom newRoomRequest
-	if err := json.Unmarshal(msg, &newRoom); err != nil {
-		log.Errorln("could not convert to required New Room Request struct")
-		return
+func updateRoomsJoinedByUsers(email string,roomID, roomName string) error {
+	if err := getUser(email); err != nil {
+		return err
 	}
 
-	roomID, err := newRoom.createNewRoom()
-	if err != nil {
-		log.Errorln("unable to create a new room for user:", newRoom.Email, "err:", err.Error())
-		return
-	}
+	var roomJoined = models.RoomsJoined{RoomID: roomID, RoomName: roomName}
+	b.RoomsJoined = append(b.RoomsJoined, roomJoined)
 
-	// Broadcast a joined message.
-	userJoinedMessage := joined{
-		RoomID:      roomID,
-		Email:       newRoom.Email,
-		RoomName:    newRoom.RoomName,
-		MessageType: values.JoinRoomMsgType,
-	}
+	_, err := db.Collection(values.UsersCollectionName).UpdateOne(ctx, bson.M{"_id": b.Email},
+		bson.M{"$set": bson.M{"roomsJoined": b.RoomsJoined}})
 
-	jsonContent, err := json.Marshal(userJoinedMessage)
-	if err != nil {
-		log.Errorln("could not marshal to jsonByte while creating room", err.Error())
-		return
-	}
-
-	HubConstruct.sendMessage(jsonContent, newRoom.Email)
+	return err
 }
 
-func (msg messageBytes) handleRequestUserToJoinRoom() {
-	var request joinRequest
-	if err := json.Unmarshal(msg, &request); err != nil {
-		log.Errorln("could not convert to required Joined Request struct, err:", err)
-		return
+func (b *User) getAllUsersAssociates() ([]string, error) {
+	if err := b.getUser(); err != nil {
+		return nil, err
 	}
 
-	for _, user := range request.Users {
-		roomRegisteredUser, err := request.requestUserToJoinRoom(user)
-		if err != nil {
-			log.Errorln("error while requesting to room, err:", err)
-			continue
+	usersChannel := make(chan []string)
+	done := make(chan struct{})
+	users := make([]string, 0)
+	registeredUser := make(map[string]bool)
+
+	go func() {
+		for {
+			data, ok := <-usersChannel
+			if ok {
+				for _, user := range data {
+					if _, exist := registeredUser[user]; !exist && user != b.Email {
+						users = append(users, user)
+						registeredUser[user] = true
+					}
+				}
+
+				continue
+			}
+
+			close(done)
+			break
+		}
+	}()
+
+	for _, roomJoined := range b.RoomsJoined {
+		var room room
+		result := db.Collection(values.RoomsCollectionName).FindOne(ctx, bson.M{
+			"_id": roomJoined.RoomID,
+		})
+
+		if err := result.Decode(&room); err != nil {
+			close(usersChannel)
+			<-done
+			return nil, err
 		}
 
-		data := struct {
-			MsgType       string `json:"msgType"`
-			RequesterID   string `json:"requesterID"`
-			RequesterName string `json:"requesterName"`
-			UserRequested string `json:"userRequested"`
-			RoomID        string `json:"roomID"`
-			RoomName      string `json:"roomName"`
-		}{
-			values.SentRoomRequestMsgType,
-			request.RequestingUserID, request.RequestingUserName,
-			user, request.RoomID, request.RoomName,
+		usersChannel <- room.RegisteredUsers
+	}
+
+	close(usersChannel)
+	<-done
+
+	return users, nil
+}
+
+func (b User) exitRoom(roomID string) ([]string, error) {
+	if err := b.getUser(); err != nil {
+		return nil, err
+	}
+
+	// Confirm if indeed user is registered to room.
+	var roomExist bool
+	for i, roomJoined := range b.RoomsJoined {
+		if roomJoined.RoomID == roomID {
+			roomExist = true
+
+			if len(b.RoomsJoined)-1 > i {
+				b.RoomsJoined = append(b.RoomsJoined[:i], b.RoomsJoined[i+1:]...)
+			} else {
+				b.RoomsJoined = b.RoomsJoined[:i]
+			}
+			break
 		}
-
-		jsonContent, err := json.Marshal(data)
-		if err != nil {
-			log.Errorln("could not marshal to RequestUsersToJoinRoom, err:", err)
-			continue
-		}
-
-		// Send back RequestUsersToJoinRoom signal to everyone registered in room.
-		for _, roomRegisteredUser := range roomRegisteredUser {
-			HubConstruct.sendMessage(jsonContent, roomRegisteredUser)
-		}
-
-		HubConstruct.sendMessage(jsonContent, user)
 	}
-}
-
-// handleUserAcceptRoomRequest accepts room join request.
-func (msg messageBytes) handleUserAcceptRoomRequest() {
-	var roomRequest joined
-	if err := json.Unmarshal(msg, &roomRequest); err != nil {
-		log.Errorln("could not convert to required Join Room Request struct, err:", err)
-		return
+	if !roomExist {
+		return nil, values.ErrUserNotRegisteredToRoom
 	}
 
-	values.MapEmailToName.Mutex.RLock()
-	roomRequest.Name = values.MapEmailToName.Mapper[roomRequest.Email]
-	values.MapEmailToName.Mutex.RUnlock()
-
-	users, err := roomRequest.acceptRoomRequest()
+	// Update room joined by user in DB.
+	_, err := db.Collection(values.UsersCollectionName).UpdateOne(ctx, bson.M{"_id": b.Email},
+		bson.M{"$set": bson.M{"roomsJoined": b.RoomsJoined}})
 	if err != nil {
-		log.Errorln("could not accept room request", err)
-		return
+		return nil, err
 	}
 
-	for _, user := range users {
-		HubConstruct.sendMessage(msg, user)
-	}
-}
+	room := room{RoomID: roomID}
+	result := db.Collection(values.RoomsCollectionName).FindOne(ctx, bson.M{"_id": room.RoomID})
 
-// handleRequestAllMessages fetches messages given the specified message room ID.
-func (msg messageBytes) handleRequestMessages(user string) {
-	roomContent := room{}
-	if err := json.Unmarshal(msg, &roomContent); err != nil {
-		log.Errorln("could not unmarshall file on handle request partitioned message, err:", err)
-		return
+	if err := result.Decode(&room); err != nil {
+		return nil, err
 	}
 
-	if err := roomContent.getPartitionedMessageInRoom(); err != nil {
-		log.Errorln("could not get all messages in room, err:", err)
-		return
-	}
-
-	// Strip off unnecessary message information sent to serverDB.
-	for index := range roomContent.Messages {
-		roomContent.Messages[index].RoomID = ""
-	}
-	roomContent.RoomIcon = ""
-
-	data := struct {
-		MsgType     string `json:"msgType"`
-		RoomContent room   `json:"roomPageDetails"`
-	}{
-		values.RequestMessages,
-		roomContent,
-	}
-
-	jsonContent, err := json.Marshal(&data)
-	if err != nil {
-		log.Errorln("could not marshal images, err:", err)
-		return
-	}
-
-	HubConstruct.sendMessage(jsonContent, user)
-}
-
-// handleNewMessage broadcasts users message to all online users and also saves to database.
-func (msg messageBytes) handleNewMessage() {
-	var newMessage Message
-	if err := json.Unmarshal(msg, &newMessage); err != nil {
-		log.Errorln("could not convert to required New Message struct", err)
-		return
-	}
-
-	newMessage.Time = time.Now().Format(values.TimeLayout)
-	// Save message to database ensuring user is registered to room.
-	registeredUsers, err := newMessage.saveMessageContent()
-	if err != nil {
-		log.Errorln("error saving msg to db, err:", err, "user:", newMessage.UserID)
-		return
-	}
-
-	jsonContent, err := json.Marshal(newMessage)
-	if err != nil {
-		log.Errorln("error converting message to json, err:", err)
-		return
-	}
-
-	// Message is sent back to all online users including sender.
-	for _, registeredUser := range registeredUsers {
-		HubConstruct.sendMessage(jsonContent, registeredUser)
-	}
-}
-
-// handleExitRoom exits requesters joined room and also notifies all room users.
-func (msg messageBytes) handleExitRoom(author string) {
-	data := struct {
-		Email  string `json:"userID"`
-		RoomID string `json:"roomID"`
-	}{}
-
-	if err := json.Unmarshal(msg, &data); err != nil {
-		log.Errorln("could not retrieve json on exit room request", err)
-		return
-	}
-
-	user := User{Email: data.Email}
-	registeredUsers, err := user.exitRoom(data.RoomID)
-	if err != nil {
-		log.Errorln("error exiting room", err)
-		return
-	}
-
-	// Broadcast to all online users of a room exit.
-	for _, registeredUser := range registeredUsers {
-		HubConstruct.sendMessage(msg, registeredUser)
-	}
-
-	HubConstruct.sendMessage(msg, author)
-}
-
-// handleNewFileUpload creates a new file content in database.
-// If file create is a success, a file upload success is sent to client to send next chunk.
-// next chunk could be the next preceding file chunk if another user has uploaded file content.
-// If file upload error, send back error message to user
-func (msg messageBytes) handleNewFileUpload() {
-	file := file{}
-	if err := json.Unmarshal(msg, &file); err != nil {
-		log.Errorln("error unmarshalling byte in handle new file upload, err:", err)
-		return
-	}
-
-	data := struct {
-		MsgType      string `json:"msgType"`
-		ErrorMessage string `json:"errorMsg,omitempty"`
-		RecentHash   string `json:"recentHash"`
-		FileName     string `json:"fileName,omitempty"`
-		FileHash     string `json:"fileHash"`
-		Chunk        int    `json:"nextChunk"`
-	}{}
-
-	data.FileName = file.FileName
-	data.FileHash = file.UniqueFileHash
-	user := file.User
-
-	if err := file.uploadNewFile(); err == mongo.ErrNoDocuments || err == nil {
-		// Send next file chunk and current hash which is a "".
-		data.MsgType = values.UploadFileChunkMsgType
-
-		// Resume file chunk upload if Current chunk is greater than 0.
-		if file.Chunks > 0 {
-			data.Chunk = file.Chunks + 1
-		} else {
-			data.Chunk = file.Chunks
-		}
-
-	} else {
-		log.Println("error on handle new file upload calling UploadNewFile, error:", err)
-		data.ErrorMessage = values.ErrFileUpload.Error()
-		data.MsgType = values.UploadFileErrorMsgType
-	}
-
-	jsonContent, err := json.Marshal(&data)
-	if err != nil {
-		log.Println("Error sending marshalled ")
-		return
-	}
-
-	HubConstruct.sendMessage(jsonContent, user)
-}
-
-func (msg messageBytes) handleUploadFileChunk() {
-	data := struct {
-		MsgType         string `json:"msgType"`
-		User            string `json:"userID"`
-		FileName        string `json:"fileName"`
-		File            string `json:"file,omitempty"`
-		NewChunkHash    string `json:"newChunkHash,omitempty"`
-		RecentChunkHash string `json:"recentChunkHash,omitempty"`
-		ChunkIndex      int    `json:"chunkIndex,omitempty"`
-		NextChunk       int    `json:"nextChunk"`
-		FileHash        string `json:"fileHash"`
-	}{}
-
-	if err := json.Unmarshal(msg, &data); err != nil {
-		log.Errorln("error unmarshalling file in handle upload chunk, err:", err)
-		return
-	}
-
-	file := fileChunks{
-		UniqueFileHash:     data.NewChunkHash,
-		FileBinary:         data.File,
-		ChunkIndex:         data.ChunkIndex,
-		CompressedFileHash: data.FileHash,
-	}
-
-	userID := data.User
-	var recentFileExist bool
-	// If file upload is a new file, set recent file exist as true.
-	if data.RecentChunkHash == "" {
-		recentFileExist = true
-	} else {
-		recentFileExist = fileChunks{UniqueFileHash: data.RecentChunkHash}.fileChunkExists()
-	}
-
-	data.RecentChunkHash, data.File, data.NewChunkHash = "", "", ""
-	data.NextChunk, data.ChunkIndex = 0, 0
-
-	fileHash := sha256.Sum256([]byte(file.FileBinary))
-	// Check if client sent file hash is same as server generated Hash.
-	if hex.EncodeToString(fileHash[:]) != file.UniqueFileHash || !recentFileExist {
-		fmt.Println("Invalid unique hash", hex.EncodeToString(fileHash[:]), recentFileExist)
-		data.MsgType = "UploadError"
-
-		// Re-request for current chunk index.
-		jsonContent, err := json.Marshal(&data)
-		if err != nil {
-			log.Println("Could not generate jsonContent to re-request file chunk")
-			return
-		}
-
-		HubConstruct.sendMessage(jsonContent, data.User)
-
-		return
-	}
-
-	if err := file.addFileChunk(); err != nil {
-		// What could be cases where err is not nil.
-		// File could have already been added to database?.
-		// We still request for next file chunk, if when we receive a new fille chunk,
-		// so that when we notice file corruption, we re-request from corrupted stage.
-		log.Println(err)
-	}
-
-	data.NextChunk = file.ChunkIndex + 1
-
-	jsonContent, err := json.Marshal(&data)
-	if err != nil {
-		log.Println("Error sending marshalled ")
-		return
-	}
-
-	HubConstruct.sendMessage(jsonContent, userID)
-}
-
-// handleUploadFileUploadComplete is called when file chunk uploads is complete.
-// File accessibility is broadcasted to other users in the room so as to download
-// file.
-func (msg messageBytes) handleUploadFileUploadComplete() {
-	data := struct {
-		MsgType  string `json:"msgType"`
-		UserID   string `json:"userID"`
-		UserName string `json:"name"`
-		FileName string `json:"fileName"`
-		FileSize string `json:"fileSize"`
-		FileHash string `json:"fileHash"`
-		RoomID   string `json:"roomID"`
-	}{}
-
-	if err := json.Unmarshal(msg, &data); err != nil {
-		log.Errorln("error unmarshalling file in handle upload file complete, err:", err)
-		return
-	}
-
-	data.MsgType = values.UploadFileSuccessMsgType
-	values.MapEmailToName.Mutex.RLock()
-	data.UserName = values.MapEmailToName.Mapper[data.UserID]
-	values.MapEmailToName.Mutex.RUnlock()
-
-	roomUsers, err := Message{
-		RoomID:  data.RoomID,
-		UserID:  data.UserID,
-		Name:    data.UserName,
-		Message: data.FileName,
-		Time:    time.Now().Format(values.TimeLayout),
-		Type:    values.MessageTypeFile,
-		Size:    data.FileSize,
-		Hash:    data.FileHash,
+	_, err = Message{
+		UserID:  b.Email,
+		RoomID:  room.RoomID,
+		Type:    values.MessageTypeInfo,
+		Message: b.Email + " Left the room",
 	}.saveMessageContent()
 
 	if err != nil {
-		log.Errorln("error saving message content in handle upload file, err:", err)
-		return
+		return nil, err
 	}
 
-	jsonContent, err := json.Marshal(&data)
+	for i, user := range room.RegisteredUsers {
+		if user == b.Email {
+			if len(room.RegisteredUsers)-1 > i {
+				room.RegisteredUsers = append(room.RegisteredUsers[:i], room.RegisteredUsers[i+1:]...)
+			} else {
+				room.RegisteredUsers = room.RegisteredUsers[:i]
+			}
+
+			break
+		}
+	}
+
+	_, err = db.Collection(values.RoomsCollectionName).UpdateOne(ctx, bson.M{
+		"_id": room.RoomID,
+	}, bson.M{"$set": bson.M{"registeredUsers": room.RegisteredUsers}})
+
+	return room.RegisteredUsers, err
+}
+
+func (b User) CreateUserLogin(password string, w http.ResponseWriter) (string, error) {
+	if err := b.getUser(); err != nil {
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword(b.Password, []byte(password)); err != nil {
+		return "", err
+	}
+
+	token, err := CookieDetail{
+		Email:      b.Email,
+		Collection: values.UsersCollectionName,
+		CookieName: values.UserCookieName,
+		Path:       "/",
+		Data: CookieData{
+			Email: b.Email,
+		},
+	}.GenerateCookie(w)
+
+	return token, err
+}
+
+func (b User) validateUser(uniqueID string) error {
+	if err := b.getUser(); err != nil {
+		return err
+	}
+
+	if b.UUID != uniqueID {
+		return values.ErrIncorrectUUID
+	}
+	return nil
+}
+
+// saveMessageContent saves users messages to database.
+// Messages are stored using individual Insertion so that all message in room can be retrieved in partition.
+func (b Message) saveMessageContent() ([]string, error) {
+	var roomDetails room
+
+	opts := options.FindOneAndUpdate().SetProjection(bson.M{"roomName": 0}).
+		SetReturnDocument(options.After)
+
+	result := db.Collection(values.RoomsCollectionName).
+		FindOneAndUpdate(ctx, bson.M{"_id": b.RoomID}, bson.M{"$inc": bson.M{"messageCount": 1}}, opts)
+
+	if err := result.Decode(&roomDetails); err != nil {
+		return nil, err
+	}
+
+	b.Index = roomDetails.MessageCount
+
+	var userExists bool
+	for _, user := range roomDetails.RegisteredUsers {
+		if b.UserID == user {
+			userExists = true
+			break
+		}
+	}
+
+	if !userExists {
+		return nil, values.ErrInvalidUser
+	}
+
+	if _, err := db.Collection(values.MessageCollectionName).InsertOne(ctx, b); err != nil {
+		return nil, err
+	}
+
+	return roomDetails.RegisteredUsers, nil
+}
+
+// getPartitionedMessageInRoom retrieves messages for a particular room in the DB.
+// Retrieved messages are collected in partitions of 20s per room messages. First message index received by client
+// is to be sent by client so that the next recurring messages are fetched from database. If total message count in DB is say 30
+// It is assumed that if the client has retrieved messages from index 30-50 where total message from room is 50
+// and want to fetch next count messages, mmessages from  index 10 to 30 is retrieved.
+// If FirstLoad is indicated, last 20 message count is retrieved.
+func (b *room) getPartitionedMessageInRoom() error {
+	if b.FirstLoad {
+		messsageCountResult := db.Collection(values.RoomsCollectionName).
+			FindOne(ctx, bson.M{"_id": b.RoomID})
+
+		if err := messsageCountResult.Decode(&b); err != nil {
+			return err
+		}
+	}
+
+	var messages []Message
+
+	result, err := db.Collection(values.MessageCollectionName).
+		Find(ctx, bson.M{"roomID": b.RoomID, "index": bson.M{"$gt": b.MessageCount - 19, "$lt": b.MessageCount + 1}}, options.Find().SetProjection(bson.M{"roomID": 0}))
+
 	if err != nil {
-		log.Errorln(err)
-		return
+		return err
 	}
 
-	for _, roomUser := range roomUsers {
-		if roomUser == data.UserID {
+	if err := result.All(ctx, &messages); err != nil {
+		return err
+	}
+
+	b.Messages = messages
+	return nil
+}
+
+func createNewRoom(b models.NewRoomRequest) (string, error) {
+	var chats models.Room
+
+	chats.RoomID = uuid.New().String()
+	chats.RoomName = b.RoomName
+	chats.RegisteredUsers = append(chats.RegisteredUsers, b.Email)
+
+	message := models.Message{
+		RoomID:  chats.RoomID,
+		Message: b.Email + " Joined",
+		Type:    models.MessageTypeInfo,
+	}
+
+	if ok := database.InsertIntoDb(database.RoomDb(), chats); !ok {
+		return "", errors.New("chats were not inserted in DB")
+	}
+
+	if ok := database.InsertIntoDb(database.MessageDb(), message); !ok {
+		return "", errors.New("Messages were not inserted in DB")
+	}
+
+	
+	if err := updateRoomsJoinedByUsers(b.Email,chats.RoomID, chats.RoomName); err != nil {
+		return "", err
+	}
+
+	return chats.RoomID, nil
+}
+
+// acceptRoomRequest accept room join request from a requesting user.
+func (b joined) acceptRoomRequest() ([]string, error) {
+	result := db.Collection(values.UsersCollectionName).FindOne(ctx, bson.M{
+		"_id": b.Email,
+	})
+
+	var user User
+	err := result.Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+
+	var joinRequestLegit bool
+	// Confirm if join request was sent to user and saved to DB.
+	for i, request := range user.JoinRequest {
+		if request.RoomID == b.RoomID {
+			joinRequestLegit = true
+			user.JoinRequest = append(user.JoinRequest[:i], user.JoinRequest[i+1:]...)
+			break
+		}
+	}
+
+	if !joinRequestLegit {
+		return nil, values.ErrIllicitJoinRequest
+	}
+
+	var messages room
+	result = db.Collection(values.RoomsCollectionName).FindOne(ctx, bson.M{
+		"_id": b.RoomID,
+	})
+
+	if err := result.Decode(&messages); err != nil {
+		return nil, err
+	}
+
+	// Room request is declined.
+	if !b.Joined {
+		message := Message{
+			UserID:  b.RequesterID,
+			RoomID:  b.RoomID,
+			Message: b.Email + "Refused join request.",
+			Type:    values.MessageTypeInfo,
+		}
+
+		if _, err := message.saveMessageContent(); err != nil {
+			return nil, err
+		}
+
+		return messages.RegisteredUsers, nil
+	}
+
+	message := Message{
+		UserID:  b.RequesterID,
+		RoomID:  b.RoomID,
+		Message: b.Email + " Accepted join request.",
+		Type:    values.MessageTypeInfo,
+	}
+
+	if _, err := message.saveMessageContent(); err != nil {
+		return nil, err
+	}
+
+	messages.RegisteredUsers = append(messages.RegisteredUsers, b.Email)
+
+	_, err = db.Collection(values.RoomsCollectionName).UpdateOne(ctx, bson.M{
+		"_id": b.RoomID,
+	}, bson.M{"$set": bson.M{"registeredUsers": messages.RegisteredUsers}})
+
+	// Save rooms joined by user to user collection.
+	if b.Joined {
+		user.RoomsJoined = append(user.RoomsJoined, roomsJoined{RoomID: b.RoomID, RoomName: b.RoomName})
+
+		_, err = db.Collection(values.UsersCollectionName).UpdateOne(ctx, bson.M{"_id": b.Email},
+			bson.M{"$set": bson.M{"joinRequest": user.JoinRequest, "roomsJoined": user.RoomsJoined}})
+
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return messages.RegisteredUsers, err
+}
+
+// requestUserToJoinRoom confirms sends join request to user.
+func (b joinRequest) requestUserToJoinRoom(userToJoinEmail string) ([]string, error) {
+	var room room
+	result := db.Collection(values.RoomsCollectionName).FindOne(ctx, bson.M{"_id": b.RoomID})
+
+	if err := result.Decode(&room); err != nil {
+		return nil, err
+	}
+
+	// Confirm if person making the request is part of the room.
+	var requesterLegit bool
+	for _, registeredUser := range room.RegisteredUsers {
+		if registeredUser == b.RequestingUserID {
+			requesterLegit = true
+			break
+
+		} else if registeredUser == userToJoinEmail {
+			return nil, values.ErrUserExistInRoom
+		}
+	}
+
+	if !requesterLegit {
+		return nil, errors.New("invalid user made a RequestUsersToJoinRoom request Name: " + b.RequestingUserID)
+	}
+
+	result = db.Collection(values.UsersCollectionName).FindOne(ctx, bson.M{"_id": userToJoinEmail})
+	var user User
+
+	if err := result.Decode(&user); err != nil {
+		return nil, err
+	}
+
+	// Return error if user is already requested.
+	for _, request := range user.JoinRequest {
+		if b.RoomID == request.RoomID {
+			return nil, values.ErrUserAlreadyRequested
+		}
+	}
+
+	user.JoinRequest = append(user.JoinRequest, b)
+
+	_, err := db.Collection(values.UsersCollectionName).UpdateOne(ctx, bson.M{"_id": userToJoinEmail},
+		bson.M{"$set": bson.M{"joinRequest": user.JoinRequest}})
+
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = Message{
+		RoomID:  b.RoomID,
+		UserID:  b.RequestingUserID,
+		Message: fmt.Sprintf("%s was requested to join the room by %s", userToJoinEmail, b.RequestingUserID),
+		Type:    values.MessageTypeInfo,
+	}.saveMessageContent()
+
+	return room.RegisteredUsers, err
+}
+
+// UploadNewFile create a NewFile content to database and returns file content if one
+// has already been created.
+// Chunks is set to zero so that if user wants to retrieve
+func (b *file) uploadNewFile() error {
+	result := db.Collection(values.FilesCollectionName).FindOne(ctx, bson.M{"_id": b.UniqueFileHash}) //, b, options.FindOneAndReplace().SetUpsert(true))
+
+	if result.Err() == mongo.ErrNoDocuments {
+		_, err := db.Collection(values.FilesCollectionName).InsertOne(ctx, b)
+		return err
+	}
+
+	if err := result.Decode(&b); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (b *file) retrieveFileInformation() error {
+	result := db.Collection(values.FilesCollectionName).FindOne(ctx, bson.M{"_id": b.UniqueFileHash})
+	return result.Decode(&b)
+}
+
+func (b fileChunks) fileChunkExists() bool {
+	result := db.Collection(values.FileChunksCollectionName).FindOne(ctx, bson.M{"_id": b.UniqueFileHash})
+	if err := result.Err(); err == nil {
+		return true
+	}
+	return false
+}
+
+func (b fileChunks) addFileChunk() error {
+	result := db.Collection(values.FileChunksCollectionName).
+		FindOneAndReplace(ctx, bson.M{"_id": b.UniqueFileHash}, b, options.FindOneAndReplace().SetUpsert(true))
+
+	// Update original file index.
+	if err := result.Err(); err == nil || err == mongo.ErrNoDocuments {
+		_, err := db.Collection(values.FilesCollectionName).UpdateOne(ctx,
+			bson.M{"_id": b.CompressedFileHash}, bson.M{"$set": bson.M{"chunks": b.ChunkIndex}})
+		return err
+	}
+
+	return result.Err()
+}
+
+func (b *fileChunks) retrieveFileChunk() error {
+	result := db.Collection(values.FileChunksCollectionName).
+		FindOne(ctx, bson.M{"compressedFileHash": b.CompressedFileHash, "chunkIndex": b.ChunkIndex})
+
+	return result.Decode(&b)
+}
+
+func uploadFileGridFS(fileName string) error {
+	fileBytes, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		log.Errorln("unable read file while uploading", err)
+		return err
+	}
+
+	buc, err := gridfs.NewBucket(db)
+	if err != nil {
+		log.Errorln("unable GridFS bucket", err)
+		return err
+	}
+
+	up, err := buc.OpenUploadStream("hhh")
+	if err != nil {
+		log.Errorln("unable to open upload stream", err)
+		return err
+	}
+	defer up.Close()
+
+	_, err = up.Write(fileBytes)
+	if err != nil {
+		log.Errorln("unable to write to bucket stream", err)
+		return err
+	}
+
+	return nil
+}
+
+func getUser(key string, user string) interface{} {
+	names := make([]struct {
+		Name  string `json:"name"`
+		Email string `json:"userID"`
+	}, 0)
+
+	values.MapEmailToName.Mutex.RLock()
+	for email, name := range values.MapEmailToName.Mapper {
+		if email == "" || email == user {
 			continue
 		}
 
-		HubConstruct.sendMessage(jsonContent, roomUser)
-	}
-}
-
-func (msg messageBytes) handleRequestDownload(author string) {
-	file := file{}
-	if err := json.Unmarshal(msg, &file); err != nil {
-		log.Println(err)
-		return
-	}
-
-	fileName := file.FileName
-
-	if err := file.retrieveFileInformation(); err != nil {
-		file.MsgType = values.DownloadFileErrorMsgType
-	}
-
-	file.FileName = fileName
-
-	jsonContent, err := json.Marshal(&file)
-	if err != nil {
-		log.Println(err)
-	}
-
-	HubConstruct.sendMessage(jsonContent, author)
-}
-
-func (msg messageBytes) handleFileDownload(author string) {
-	file := fileChunks{}
-	if err := json.Unmarshal(msg, &file); err != nil {
-		log.Errorln("error unmarshalling on handle file download, err:", err)
-		return
-	}
-
-	fileName := file.FileName
-
-	if err := file.retrieveFileChunk(); err != nil {
-		log.Println("error retrieving file", err)
-		// Send download file error message to client so as to stop download.
-		file = fileChunks{}
-		file.MsgType = values.DownloadFileErrorMsgType
-	} else {
-		file.MsgType = values.DownloadFileChunkMsgType
-	}
-
-	file.FileName = fileName
-
-	jsonContent, err := json.Marshal(&file)
-	if err != nil {
-		log.Println(err)
-	}
-
-	HubConstruct.sendMessage(jsonContent, author)
-}
-
-// handleSearchUser returns registered users that match searchText.
-func handleSearchUser(searchText, user string) {
-	data := struct {
-		UsersFound interface{} `json:"fetchedUsers"`
-		MsgType    string      `json:"msgType"`
-	}{
-		getUser(searchText, user),
-		values.SearchUserMsgType,
-	}
-
-	jsonContent, err := json.Marshal(&data)
-	if err != nil {
-		log.Errorln("error while converting search user result to json", err)
-		return
-	}
-
-	HubConstruct.sendMessage(jsonContent, user)
-}
-
-// handleLoadUserContent loads all users contents on page load.
-// All rooms joined and users requests are loaded through WS.
-func handleLoadUserContent(email string) {
-	userInfo := User{Email: email}
-	if err := userInfo.getUser(); err != nil {
-		log.Errorln("Could not fetch users room", email)
-		return
-	}
-
-	usersAssociate, err := userInfo.getAllUsersAssociates()
-	if err != nil {
-		log.Errorln("error getting users associates in handleLoadUserContent, err:", err)
-		return
-	}
-
-	HubConstruct.users.mutex.RLock()
-	values.MapEmailToName.Mutex.RLock()
-	isUserOnline := make(map[string]associateStatus)
-	for _, associate := range usersAssociate {
-		_, isOnline := HubConstruct.users.users[associate]
-		isUserOnline[associate] = associateStatus{Name: values.MapEmailToName.Mapper[associate], IsOnline: isOnline}
-	}
-	values.MapEmailToName.Mutex.RUnlock()
-	HubConstruct.users.mutex.RUnlock()
-
-	request := map[string]interface{}{
-		"msgType":      values.WebsocketOpenMsgType,
-		"joinedRooms":  userInfo.RoomsJoined,
-		"joinRequests": userInfo.JoinRequest,
-		"associates":   isUserOnline,
-	}
-
-	if data, err := json.Marshal(request); err == nil {
-		HubConstruct.sendMessage(data, email)
-	}
-}
-
-// broadcastOnlineStatusToAllUserRoom broadcasts users availability status to all users joined rooms.
-func broadcastOnlineStatusToAllUserRoom(userEmail string, online bool) {
-	user := User{Email: userEmail}
-	associates, err := user.getAllUsersAssociates()
-	if err != nil {
-		log.Errorln("could not get users associate", err)
-		return
-	}
-
-	values.MapEmailToName.Mutex.RLock()
-	for _, assassociateEmail := range associates {
-		msg := map[string]interface{}{
-			"msgType": values.OnlineStatusMsgType,
-			"userID":  userEmail,
-			"status":  online,
-		}
-
-		if data, err := json.Marshal(msg); err == nil {
-			HubConstruct.sendMessage(data, assassociateEmail)
+		if strings.Contains(email, key) {
+			names = append(names, struct {
+				Name  string `json:"name"`
+				Email string `json:"userID"`
+			}{
+				name, email,
+			})
 		}
 	}
-
 	values.MapEmailToName.Mutex.RUnlock()
+
+	return names
 }

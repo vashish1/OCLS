@@ -2,10 +2,8 @@ package protocol
 
 import (
 	"fmt"
+	"time"
 )
-
-// A PacketNumber in QUIC
-type PacketNumber uint64
 
 // The PacketType is the Long Header Type
 type PacketType uint8
@@ -36,6 +34,15 @@ func (t PacketType) String() string {
 	}
 }
 
+type ECN uint8
+
+const (
+	ECNNon ECN = iota // 00
+	ECT1              // 01
+	ECT0              // 10
+	ECNCE             // 11
+)
+
 // A ByteCount in QUIC
 type ByteCount uint64
 
@@ -43,7 +50,10 @@ type ByteCount uint64
 const MaxByteCount = ByteCount(1<<62 - 1)
 
 // An ApplicationErrorCode is an application-defined error code.
-type ApplicationErrorCode uint16
+type ApplicationErrorCode uint64
+
+// A StatelessResetToken is a stateless reset token.
+type StatelessResetToken [16]byte
 
 // MaxReceivePacketSize maximum packet size of any QUIC packet, based on
 // ethernet's max size, minus the IP and UDP headers. IPv6 has a 40 byte header,
@@ -51,25 +61,37 @@ type ApplicationErrorCode uint16
 // Ethernet's max packet size is 1500 bytes,  1500 - 48 = 1452.
 const MaxReceivePacketSize ByteCount = 1452
 
-// DefaultTCPMSS is the default maximum packet size used in the Linux TCP implementation.
-// Used in QUIC for congestion window computations in bytes.
-const DefaultTCPMSS ByteCount = 1460
-
 // MinInitialPacketSize is the minimum size an Initial packet is required to have.
 const MinInitialPacketSize = 1200
 
-// MinStatelessResetSize is the minimum size of a stateless reset packet
-const MinStatelessResetSize = 1 /* first byte */ + 22 /* random bytes */ + 16 /* token */
+// MinUnknownVersionPacketSize is the minimum size a packet with an unknown version
+// needs to have in order to trigger a Version Negotiation packet.
+const MinUnknownVersionPacketSize = MinInitialPacketSize
+
+// MinStatelessResetSize is the minimum size of a stateless reset packet that we send
+const MinStatelessResetSize = 1 /* first byte */ + 20 /* max. conn ID length */ + 4 /* max. packet number length */ + 1 /* min. payload length */ + 16 /* token */
 
 // MinConnectionIDLenInitial is the minimum length of the destination connection ID on an Initial packet.
 const MinConnectionIDLenInitial = 8
-
-// MaxStreamCount is the maximum stream count value that can be sent in MAX_STREAMS frames
-// and as the stream count in the transport parameters
-const MaxStreamCount = 1 << 60
 
 // DefaultAckDelayExponent is the default ack delay exponent
 const DefaultAckDelayExponent = 3
 
 // MaxAckDelayExponent is the maximum ack delay exponent
 const MaxAckDelayExponent = 20
+
+// DefaultMaxAckDelay is the default max_ack_delay
+const DefaultMaxAckDelay = 25 * time.Millisecond
+
+// MaxMaxAckDelay is the maximum max_ack_delay
+const MaxMaxAckDelay = (1<<14 - 1) * time.Millisecond
+
+// MaxConnIDLen is the maximum length of the connection ID
+const MaxConnIDLen = 20
+
+// InvalidPacketLimitAES is the maximum number of packets that we can fail to decrypt when using
+// AEAD_AES_128_GCM or AEAD_AES_265_GCM.
+const InvalidPacketLimitAES = 1 << 52
+
+// InvalidPacketLimitChaCha is the maximum number of packets that we can fail to decrypt when using AEAD_CHACHA20_POLY1305.
+const InvalidPacketLimitChaCha = 1 << 36

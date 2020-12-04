@@ -1,11 +1,16 @@
 package protocol
 
+// A PacketNumber in QUIC
+type PacketNumber int64
+
+// InvalidPacketNumber is a packet number that is never sent.
+// In QUIC, 0 is a valid packet number.
+const InvalidPacketNumber PacketNumber = -1
+
 // PacketNumberLen is the length of the packet number in bytes
 type PacketNumberLen uint8
 
 const (
-	// PacketNumberLenInvalid is the default value and not a valid length for a packet number
-	PacketNumberLenInvalid PacketNumberLen = 0
 	// PacketNumberLen1 is a packet number length of 1 byte
 	PacketNumberLen1 PacketNumberLen = 1
 	// PacketNumberLen2 is a packet number length of 2 bytes
@@ -34,7 +39,10 @@ func DecodePacketNumber(
 		epochDelta = PacketNumber(1) << 32
 	}
 	epoch := lastPacketNumber & ^(epochDelta - 1)
-	prevEpochBegin := epoch - epochDelta
+	var prevEpochBegin PacketNumber
+	if epoch > epochDelta {
+		prevEpochBegin = epoch - epochDelta
+	}
 	nextEpochBegin := epoch + epochDelta
 	return closestTo(
 		lastPacketNumber+1,
@@ -65,20 +73,6 @@ func GetPacketNumberLengthForHeader(packetNumber, leastUnacked PacketNumber) Pac
 		return PacketNumberLen2
 	}
 	if diff < (1 << (24 - 1)) {
-		return PacketNumberLen3
-	}
-	return PacketNumberLen4
-}
-
-// GetPacketNumberLength gets the minimum length needed to fully represent the packet number
-func GetPacketNumberLength(packetNumber PacketNumber) PacketNumberLen {
-	if packetNumber < (1 << (uint8(PacketNumberLen1) * 8)) {
-		return PacketNumberLen1
-	}
-	if packetNumber < (1 << (uint8(PacketNumberLen2) * 8)) {
-		return PacketNumberLen2
-	}
-	if packetNumber < (1 << (uint8(PacketNumberLen3) * 8)) {
 		return PacketNumberLen3
 	}
 	return PacketNumberLen4

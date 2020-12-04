@@ -83,6 +83,10 @@ type blockDec struct {
 	err         error
 	decWG       sync.WaitGroup
 
+	// Frame to use for singlethreaded decoding.
+	// Should not be used by the decoder itself since parent may be another frame.
+	localFrame *frameDec
+
 	// Block is RLE, this is the size.
 	RLESize uint32
 	tmp     [4]byte
@@ -642,7 +646,7 @@ func (b *blockDec) decodeCompressed(hist *history) error {
 		}
 	} else {
 		if hist.huffTree != nil && huff != nil {
-			if hist.dict == nil || hist.dict.litDec != hist.huffTree {
+			if hist.dict == nil || hist.dict.litEnc != hist.huffTree {
 				huffDecoderPool.Put(hist.huffTree)
 			}
 			hist.huffTree = nil

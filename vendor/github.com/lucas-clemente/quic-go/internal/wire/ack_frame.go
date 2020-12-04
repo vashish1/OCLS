@@ -16,10 +16,12 @@ var errInvalidAckRanges = errors.New("AckFrame: ACK frame contains invalid ACK r
 type AckFrame struct {
 	AckRanges []AckRange // has to be ordered. The highest ACK range goes first, the lowest ACK range goes last
 	DelayTime time.Duration
+
+	ECT0, ECT1, ECNCE uint64
 }
 
 // parseAckFrame reads an ACK frame
-func parseAckFrame(r *bytes.Reader, ackDelayExponent uint8, version protocol.VersionNumber) (*AckFrame, error) {
+func parseAckFrame(r *bytes.Reader, ackDelayExponent uint8, _ protocol.VersionNumber) (*AckFrame, error) {
 	typeByte, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -37,7 +39,13 @@ func parseAckFrame(r *bytes.Reader, ackDelayExponent uint8, version protocol.Ver
 	if err != nil {
 		return nil, err
 	}
-	frame.DelayTime = time.Duration(delay*1<<ackDelayExponent) * time.Microsecond
+
+	delayTime := time.Duration(delay*1<<ackDelayExponent) * time.Microsecond
+	if delayTime < 0 {
+		// If the delay time overflows, set it to the maximum encodable value.
+		delayTime = utils.InfDuration
+	}
+	frame.DelayTime = delayTime
 
 	numBlocks, err := utils.ReadVarInt(r)
 	if err != nil {
@@ -98,8 +106,13 @@ func parseAckFrame(r *bytes.Reader, ackDelayExponent uint8, version protocol.Ver
 }
 
 // Write writes an ACK frame.
-func (f *AckFrame) Write(b *bytes.Buffer, version protocol.VersionNumber) error {
-	b.WriteByte(0x2)
+func (f *AckFrame) Write(b *bytes.Buffer, _ protocol.VersionNumber) error {
+	hasECN := f.ECT0 > 0 || f.ECT1 > 0 || f.ECNCE > 0
+	if hasECN {
+		b.WriteByte(0x3)
+	} else {
+		b.WriteByte(0x2)
+	}
 	utils.WriteVarInt(b, uint64(f.LargestAcked()))
 	utils.WriteVarInt(b, encodeAckDelay(f.DelayTime))
 
@@ -115,6 +128,12 @@ func (f *AckFrame) Write(b *bytes.Buffer, version protocol.VersionNumber) error 
 		gap, len := f.encodeAckRange(i)
 		utils.WriteVarInt(b, gap)
 		utils.WriteVarInt(b, len)
+	}
+
+	if hasECN {
+		utils.WriteVarInt(b, f.ECT0)
+		utils.WriteVarInt(b, f.ECT1)
+		utils.WriteVarInt(b, f.ECNCE)
 	}
 	return nil
 }
@@ -134,6 +153,11 @@ func (f *AckFrame) Length(version protocol.VersionNumber) protocol.ByteCount {
 		gap, len := f.encodeAckRange(i)
 		length += utils.VarIntLen(gap)
 		length += utils.VarIntLen(len)
+	}
+	if f.ECT0 > 0 || f.ECT1 > 0 || f.ECNCE > 0 {
+		length += utils.VarIntLen(f.ECT0)
+		length += utils.VarIntLen(f.ECT1)
+		length += utils.VarIntLen(f.ECNCE)
 	}
 	return length
 }

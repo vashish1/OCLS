@@ -23,9 +23,6 @@ type Decoder struct {
 	// Unreferenced decoders, ready for use.
 	decoders chan *blockDec
 
-	// Unreferenced decoders, ready for use.
-	frames chan *frameDec
-
 	// Streams ready to be decoded.
 	stream chan decodeStream
 
@@ -88,12 +85,19 @@ func NewReader(r io.Reader, opts ...DOption) (*Decoder, error) {
 	d.current.output = make(chan decodeOutput, d.o.concurrent)
 	d.current.flushed = true
 
+	// Transfer option dicts.
+	d.dicts = make(map[uint32]dict, len(d.o.dicts))
+	for _, dc := range d.o.dicts {
+		d.dicts[dc.id] = dc
+	}
+	d.o.dicts = nil
+
 	// Create decoders
 	d.decoders = make(chan *blockDec, d.o.concurrent)
-	d.frames = make(chan *frameDec, d.o.concurrent)
 	for i := 0; i < d.o.concurrent; i++ {
-		d.frames <- newFrameDec(d.o)
-		d.decoders <- newBlockDec(d.o.lowMem)
+		dec := newBlockDec(d.o.lowMem)
+		dec.localFrame = newFrameDec(d.o)
+		d.decoders <- dec
 	}
 
 	if r == nil {
@@ -183,7 +187,7 @@ func (d *Decoder) Reset(r io.Reader) error {
 		d.current.err = err
 		d.current.flushed = true
 		if debug {
-			println("sync decode to ", len(dst), "bytes, err:", err)
+			println("sync decode to", len(dst), "bytes, err:", err)
 		}
 		return nil
 	}
@@ -283,15 +287,15 @@ func (d *Decoder) DecodeAll(input, dst []byte) ([]byte, error) {
 	}
 
 	// Grab a block decoder and frame decoder.
-	block, frame := <-d.decoders, <-d.frames
+	block := <-d.decoders
+	frame := block.localFrame
 	defer func() {
 		if debug {
 			printf("re-adding decoder: %p", block)
 		}
-		d.decoders <- block
 		frame.rawInput = nil
 		frame.bBuf = nil
-		d.frames <- frame
+		d.decoders <- block
 	}()
 	frame.bBuf = input
 
@@ -299,6 +303,9 @@ func (d *Decoder) DecodeAll(input, dst []byte) ([]byte, error) {
 		frame.history.reset()
 		err := frame.reset(&frame.bBuf)
 		if err == io.EOF {
+			if debug {
+				println("frame reset return EOF")
+			}
 			return dst, nil
 		}
 		if frame.DictionaryID != nil {
@@ -316,18 +323,22 @@ func (d *Decoder) DecodeAll(input, dst []byte) ([]byte, error) {
 		}
 		if frame.FrameContentSize > 0 && frame.FrameContentSize < 1<<30 {
 			// Never preallocate moe than 1 GB up front.
-			if uint64(cap(dst)) < frame.FrameContentSize {
+			if cap(dst)-len(dst) < int(frame.FrameContentSize) {
 				dst2 := make([]byte, len(dst), len(dst)+int(frame.FrameContentSize))
 				copy(dst2, dst)
 				dst = dst2
 			}
 		}
 		if cap(dst) == 0 {
-			// Allocate window size * 2 by default if nothing is provided and we didn't get frame content size.
-			size := frame.WindowSize * 2
+			// Allocate len(input) * 2 by default if nothing is provided
+			// and we didn't get frame content size.
+			size := len(input) * 2
 			// Cap to 1 MB.
 			if size > 1<<20 {
 				size = 1 << 20
+			}
+			if uint64(size) > d.o.maxDecodedSize {
+				size = int(d.o.maxDecodedSize)
 			}
 			dst = make([]byte, 0, size)
 		}
@@ -337,6 +348,9 @@ func (d *Decoder) DecodeAll(input, dst []byte) ([]byte, error) {
 			return dst, err
 		}
 		if len(frame.bBuf) == 0 {
+			if debug {
+				println("frame dbuf empty")
+			}
 			break
 		}
 	}
@@ -400,19 +414,6 @@ func (d *Decoder) Close() {
 		d.current.d = nil
 	}
 	d.current.err = ErrDecoderClosed
-}
-
-// RegisterDict will load a dictionary
-func (d *Decoder) RegisterDict(b []byte) error {
-	dc, err := loadDict(b)
-	if err != nil {
-		return err
-	}
-	if d.dicts == nil {
-		d.dicts = make(map[uint32]dict, 1)
-	}
-	d.dicts[dc.id] = *dc
-	return nil
 }
 
 // IOReadCloser returns the decoder as an io.ReadCloser for convenience.
