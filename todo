@@ -1,0 +1,5 @@
+setup secret key env variable also the dbURL
+
+change the functionality of cors by a library that works
+
+add logging

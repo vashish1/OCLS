@@ -28,3 +28,7 @@ Response structure mein puchna hai ki, Response structure shi hai ki nhi, aur ag
  func insertintoteacherdb(){
     call-> insert(teachercl,data)
  }
+
+ student aur user differentiate kaise krungi?
+ mtlb login ke liye aur authentication time pr.
+ 

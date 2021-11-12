@@ -9,5 +9,6 @@ type Student struct {
 	AdmNo     string   `json:"adm_no,omitempty"`
 	Phone     string   `json:"phone,omitempty"`
 	ClassCode []string `json:"class_code"`
+	Type int           `json:"type"`
 }
 
