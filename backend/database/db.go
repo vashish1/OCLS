@@ -14,15 +14,15 @@ import (
 )
 
 //Colections in database
-var StudentCl, TeacherCl, ClassCl *mongo.Collection
+var StudentCl, TeacherCl, ClassCl, AssignmentCl,AnnouncementCl *mongo.Collection
 
 func init() {
-	StudentCl, TeacherCl, ClassCl = Createdb()
+	StudentCl, TeacherCl, ClassCl,AssignmentCl,AnnouncementCl = Createdb()
 
 }
 
 //Createdb creates a database
-func Createdb() (*mongo.Collection, *mongo.Collection, *mongo.Collection) {
+func Createdb() (*mongo.Collection,*mongo.Collection,*mongo.Collection,*mongo.Collection,*mongo.Collection ) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	// db := os.Getenv("DbURL")
@@ -37,8 +37,9 @@ func Createdb() (*mongo.Collection, *mongo.Collection, *mongo.Collection) {
 	studentdb := client.Database("OCLS").Collection("Student")
 	teacherdb := client.Database("OCLS").Collection("Teacher")
 	classdb := client.Database("OCLS").Collection("Class")
-
-	return studentdb, teacherdb, classdb
+	Assignmentdb := client.Database("OCLS").Collection("Assignment")
+	Announcementdb := client.Database("OCLS").Collection("Announcement")
+	return studentdb, teacherdb, classdb, Assignmentdb,Announcementdb
 }
 func UserExists(email string) (bool, map[string]interface{}) {
 	if ok, user := Find(StudentCl, email); ok {
@@ -64,13 +65,13 @@ func Insertintodb(data map[string]interface{}) (bool, error) {
 	return false, errors.New("Error while inserting into database")
 }
 
-func UpdateTeacher(email, code string) error {
+func UpdateTeacher(email, key string, value interface{}) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	filter := bson.D{
 		{"email", email},
 	}
-	update := bson.M{"$push": bson.M{"class": code}}
+	update := bson.M{"$push": bson.M{key: value}}
 	updateResult, err := TeacherCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)

@@ -48,3 +48,12 @@ func UpdataClassData(code, email string) bool {
 	fmt.Println("Added %s code to student %s", code, email)
 	return true
 }
+
+func InsertAssignment(desc,file string)(bool,int){
+	var data = models.Assignment{
+		ID: utility.GenerateUUID(),
+		Description: desc,
+		FileName:file,
+	}
+	return Insert(AssignmentCl,data),data.ID
+}

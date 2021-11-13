@@ -38,7 +38,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 	ok, class_code := database.InsertClass(input)
 	fmt.Println(ok, class_code)
 	if ok {
-		err := database.UpdateTeacher(email.(string), class_code)
+		err := database.UpdateTeacher(email.(string),"class", class_code)
 		fmt.Println(err)
 		if err == nil {
 			res = models.Response{

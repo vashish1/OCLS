@@ -21,6 +21,7 @@ func main() {
 	r.HandleFunc("/login", auth.Login).Methods("GET")
 	r.HandleFunc("/signup", auth.Signup).Methods("POST")
 	r.Handle("/class", middleware.Mdw.ThenFunc(class.CreateClass)).Methods("POST")
+	r.Handle("/pdf", middleware.Mdw.ThenFunc(class.GiveAssignment)).Methods("POST")
 	http.Handle("/", handlers.CORS(headers, methods, origins)(r))
 	port := os.Getenv("PORT")
 	if port == "" {

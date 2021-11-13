@@ -3,3 +3,5 @@ setup secret key env variable also the dbURL
 change the functionality of cors by a library that works
 
 add logging
+
+set the description as mandatory for assignment
