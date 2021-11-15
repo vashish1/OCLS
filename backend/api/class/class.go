@@ -35,12 +35,9 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.TeacherEmail = email.(string)
-	ok, class_code := database.InsertClass(input)
+	ok,class_code := database.InsertClass(input,email.(string))
 	fmt.Println(ok, class_code)
 	if ok {
-		err := database.UpdateTeacher(email.(string),"class", class_code)
-		fmt.Println(err)
-		if err == nil {
 			res = models.Response{
 				Success: true,
 				Message: "Class created Successfully",
@@ -49,7 +46,6 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 			code = http.StatusAccepted
 			utility.SendResponse(w, res, code)
 			return
-		}
 	}
 	res = models.Response{
 		Success: false,
@@ -103,6 +99,46 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 	}
 	utility.SendResponse(w, res, code)
 	return
+
+}
+
+func CreateAnnouncement(w http.ResponseWriter,r *http.Request){
+	user_type := r.Context().Value("type")
+	email := r.Context().Value("email")
+	var res models.Response
+	var code int
+	if (int)(user_type.(float64)) != models.Type_Teacher {
+		res = models.Response{
+			Success: false,
+			Message: "unauthorized user for request",
+		}
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")   
+	var input models.Announcement
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		w.Write([]byte(`{"error": "body not parsed"}`))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ok:=database.InsertAnnouncement(input,email.(string))
+	if ok{
+        res =models.Response{
+           Success: true,
+		   Message: "Announcement added Successfully",
+		}
+		code =http.StatusAccepted
+	}else{
+		res =models.Response{
+			Success: false,
+			Error: "Error while adding announcement",
+		 }
+		 code =http.StatusAccepted
+	}
 
 }
 

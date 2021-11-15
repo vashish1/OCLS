@@ -12,13 +12,18 @@ import (
 )
 
 //solve the problem of same classname
-func InsertClass(input models.Class) (bool, string) {
+func InsertClass(input models.Class,email string) (bool,string) {
 	input.Code = utility.SHA256ofstring(input.TeacherEmail)[0:6]
 	ok := Insert(ClassCl, input)
 	if ok {
-		return true, input.Code
+		err:=UpdateTeacher(email,"class",input.Code)
+		if err!=nil{
+			fmt.Println(err)
+			return false,""
+		}
+		return true,input.Code
 	}
-	return false, ""
+	return false,""
 }
 
 func UpdataClassData(code, email string) bool {
@@ -112,4 +117,18 @@ func GetStudentList(class_code string) (error,[]string){
 		}
 		fmt.Println(data)
 		return nil,data.StudentList
+}
+
+func InsertAnnouncement(input models.Announcement,email string)(bool){
+	input.ID=utility.GenerateUUID()
+	ok:=Insert(AnnouncementCl,input)
+	if ok{
+        err:=UpdateTeacher(email,"post",input.ID)
+		if err!=nil{
+			fmt.Println(err)
+			return false
+		}
+		return true
+	}
+	return false
 }

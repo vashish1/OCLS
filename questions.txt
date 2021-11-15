@@ -32,3 +32,5 @@ Response structure mein puchna hai ki, Response structure shi hai ki nhi, aur ag
  student aur user differentiate kaise krungi?
  mtlb login ke liye aur authentication time pr.
  
+ announcement mein aur class structure mein name ki zarurat hai kya?
+ 

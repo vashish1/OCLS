@@ -12,8 +12,16 @@ Signup --------> Login ----teacher---> Dashboard ---->create class
                     |                                            |------------->Notification to studentcl
                     |
                     |                      
-                    |----student --------->Dashboard -----classes
-                                                 | 
+                    |----student --------->Dashboard -----classes-------submit assignment
+                                                 |
+                                                 |
+                                                 |
+                                                 |------view announcements
+                                                 |
+                                                 |-------view assignments
+                                                 
+
+                                                  
                                           
                                          
                                          
