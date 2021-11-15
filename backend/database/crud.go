@@ -49,4 +49,3 @@ func Find(c *mongo.Collection, email string) (bool, map[string]interface{}) {
 // 	fmt.Println(data)
 // 	return nil,data
 // }
-

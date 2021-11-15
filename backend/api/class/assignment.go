@@ -46,21 +46,18 @@ func GiveAssignment(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusInternalServerError
 	}
 
-	ok, id := database.InsertAssignment(desc, t, h.Filename)
+	ok := database.InsertAssignment(desc, t, h.Filename, class_code, email.(string))
 	if ok {
-		if err := database.UpdateTeacher(email.(string), "assignment", id); err == nil {
-			res = models.Response{
-				Success: true,
-				Message: "Assignment Added",
-			}
-			code = http.StatusAccepted
-			ok := Notification.SendEmail(class_code, t)
-			if ok {
-				fmt.Println("email sent")
-			} else {
-				fmt.Println("email not sent")
-			}
-
+		res = models.Response{
+			Success: true,
+			Message: "Assignment Added",
+		}
+		code = http.StatusAccepted
+		ok := Notification.SendEmail(class_code, t)
+		if ok {
+			fmt.Println("email sent")
+		} else {
+			fmt.Println("email not sent")
 		}
 	} else {
 		res = models.Response{

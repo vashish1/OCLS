@@ -15,11 +15,12 @@ type Class struct {
 }
 
 type Assignment struct {
-	ID          int          `json:"id"`
-	Description string       `json:"description"`
-	FileName    string       `json:"file_name"`
-	Submissions []Submission `json:"submissions"`
-	Date        time.Time    `json:"date"`
+	ID          int          `json:"id,omitempty"`
+	Class_code  string       `json:"class_code,omitempty"`
+	Description string       `json:"description,omitempty"`
+	FileName    string       `json:"file_name,omitempty"`
+	Submissions []Submission `json:"submissions,omitempty"`
+	Date        time.Time    `json:"date,omitempty"`
 }
 
 type Submission struct {
@@ -28,9 +29,9 @@ type Submission struct {
 	Timestamp time.Time `json:"timestamp"`
 }
 
-type Announcement struct{
-	ID int
-	ClassCode string
-	Description string
-	Timestamp string
+type Announcement struct {
+	ID          int    `json:"id,omitempty"`
+	ClassCode   string `json:"class_code,omitempty"`
+	Description string `json:"description,omitempty"`
+	Timestamp   string `json:"timestamp,omitempty"`
 }

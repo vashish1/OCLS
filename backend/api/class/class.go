@@ -35,17 +35,17 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	input.TeacherEmail = email.(string)
-	ok,class_code := database.InsertClass(input,email.(string))
+	ok, class_code := database.InsertClass(input, email.(string))
 	fmt.Println(ok, class_code)
 	if ok {
-			res = models.Response{
-				Success: true,
-				Message: "Class created Successfully",
-				Data:    class_code,
-			}
-			code = http.StatusAccepted
-			utility.SendResponse(w, res, code)
-			return
+		res = models.Response{
+			Success: true,
+			Message: "Class created Successfully",
+			Data:    class_code,
+		}
+		code = http.StatusAccepted
+		utility.SendResponse(w, res, code)
+		return
 	}
 	res = models.Response{
 		Success: false,
@@ -102,7 +102,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func CreateAnnouncement(w http.ResponseWriter,r *http.Request){
+func CreateAnnouncement(w http.ResponseWriter, r *http.Request) {
 	user_type := r.Context().Value("type")
 	email := r.Context().Value("email")
 	var res models.Response
@@ -116,7 +116,7 @@ func CreateAnnouncement(w http.ResponseWriter,r *http.Request){
 		utility.SendResponse(w, res, code)
 		return
 	}
-	w.Header().Set("Content-Type", "application/json")   
+	w.Header().Set("Content-Type", "application/json")
 	var input models.Announcement
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
@@ -125,20 +125,99 @@ func CreateAnnouncement(w http.ResponseWriter,r *http.Request){
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	ok:=database.InsertAnnouncement(input,email.(string))
-	if ok{
-        res =models.Response{
-           Success: true,
-		   Message: "Announcement added Successfully",
+	ok := database.InsertAnnouncement(input, email.(string))
+	if ok {
+		res = models.Response{
+			Success: true,
+			Message: "Announcement added Successfully",
 		}
-		code =http.StatusAccepted
-	}else{
-		res =models.Response{
+		code = http.StatusAccepted
+	} else {
+		res = models.Response{
 			Success: false,
-			Error: "Error while adding announcement",
-		 }
-		 code =http.StatusAccepted
+			Error:   "Error while adding announcement",
+		}
+		code = http.StatusAccepted
 	}
 
 }
 
+func GetClass(w http.ResponseWriter, r *http.Request) {
+
+	ok, data := database.GetAllClass()
+	if ok {
+		res := models.Response{
+			Success: true,
+			Message: "dlass data fetch successful",
+			Data:    data,
+		}
+		utility.SendResponse(w, res, http.StatusOK)
+		return
+	}
+	res := models.Response{
+		Success: false,
+		Error:   "error while fetching data",
+	}
+	utility.SendResponse(w, res, http.StatusInternalServerError)
+	return
+}
+
+func GetAnnouncement(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Class string `json:"class,omitempty"`
+	}
+	w.Header().Set("Content-Type", "application/json")
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		w.Write([]byte(`{"error": "body not parsed"}`))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ok, data := database.GetAllAnnouncement(input.Class)
+	if ok {
+		res := models.Response{
+			Success: true,
+			Message: "dlass data fetch successful",
+			Data:    data,
+		}
+		utility.SendResponse(w, res, http.StatusOK)
+		return
+	}
+	res := models.Response{
+		Success: false,
+		Error:   "error while fetching data",
+	}
+	utility.SendResponse(w, res, http.StatusInternalServerError)
+	return
+}
+
+func GetAssignment(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Class string `json:"class,omitempty"`
+	}
+	w.Header().Set("Content-Type", "application/json")
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		w.Write([]byte(`{"error": "body not parsed"}`))
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	ok, data := database.GetAllAssignment(input.Class)
+	if ok {
+		res := models.Response{
+			Success: true,
+			Message: "class data fetch successful",
+			Data:    data,
+		}
+		utility.SendResponse(w, res, http.StatusOK)
+		return
+	}
+	res := models.Response{
+		Success: false,
+		Error:   "error while fetching data",
+	}
+	utility.SendResponse(w, res, http.StatusInternalServerError)
+	return
+}

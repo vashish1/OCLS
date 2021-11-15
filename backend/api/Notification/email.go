@@ -20,13 +20,13 @@ var from = &mailjet.RecipientV31{
 var client = mailjet.NewMailjetClient(key, pass)
 
 //SendWelcomeEmail func
-func SendEmail(class_code,date string) bool {
-    err,list:=database.GetStudentList(class_code)
-	if err!=nil{
+func SendEmail(class_code, date string) bool {
+	err, list := database.GetStudentList(class_code)
+	if err != nil {
 		fmt.Println(err)
-		 return false
+		return false
 	}
-	for _,mail := range list{
+	for _, mail := range list {
 		messagesInfo := []mailjet.InfoMessagesV31{
 			mailjet.InfoMessagesV31{
 				From: from,
@@ -37,7 +37,7 @@ func SendEmail(class_code,date string) bool {
 					},
 				},
 				Subject:  "Assignment Due",
-				TextPart: "Dear student\n" + "You have an assignment due, complete it before the date :"+date,
+				TextPart: "Dear student\n" + "You have an assignment due, complete it before the date :" + date,
 			},
 		}
 		messages := mailjet.MessagesV31{Info: messagesInfo}
@@ -46,7 +46,7 @@ func SendEmail(class_code,date string) bool {
 			fmt.Println("error while sending mail", err)
 			return false
 		}
-	
+
 	}
 	return true
 }

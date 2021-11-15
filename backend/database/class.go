@@ -9,21 +9,22 @@ import (
 	"github.com/vashish1/OCLS/backend/models"
 	"github.com/vashish1/OCLS/backend/utility"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 //solve the problem of same classname
-func InsertClass(input models.Class,email string) (bool,string) {
+func InsertClass(input models.Class, email string) (bool, string) {
 	input.Code = utility.SHA256ofstring(input.TeacherEmail)[0:6]
 	ok := Insert(ClassCl, input)
 	if ok {
-		err:=UpdateTeacher(email,"class",input.Code)
-		if err!=nil{
+		err := UpdateTeacher(email, "class", input.Code)
+		if err != nil {
 			fmt.Println(err)
-			return false,""
+			return false, ""
 		}
-		return true,input.Code
+		return true, input.Code
 	}
-	return false,""
+	return false, ""
 }
 
 func UpdataClassData(code, email string) bool {
@@ -55,30 +56,37 @@ func UpdataClassData(code, email string) bool {
 	return true
 }
 
-func InsertAssignment(desc, t, file string) (bool, int) {
+func InsertAssignment(desc, t, file, class, email string) bool {
 	date, _ := time.Parse("2006-01-02T15:04", t)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
+		Class_code:  class,
 		Description: desc,
-		FileName:    "https://storage.googleapis.com/batbuck/"+file,
+		FileName:    "https://storage.googleapis.com/batbuck/" + file,
 		Date:        date,
 	}
-	return Insert(AssignmentCl, data), data.ID
+	ok := Insert(AssignmentCl, data)
+	if ok {
+		if err := UpdateTeacher(email, "assignment", data.ID); err == nil {
+			return true
+		}
+	}
+	return false
 }
 
 func InsertSubmission(id, email, filename string) bool {
-	  
-	date, _ := time.Parse("2006-01-02T15:04", time.Now().Format("2006-01-02T15:04") )
+
+	date, _ := time.Parse("2006-01-02T15:04", time.Now().Format("2006-01-02T15:04"))
 	var sub = models.Submission{
 		Email:     email,
 		Timestamp: date,
-		FileName:  "https://storage.googleapis.com/batbuck/"+filename,
+		FileName:  "https://storage.googleapis.com/batbuck/" + filename,
 	}
-	id_value,_ := strconv.Atoi(id)
+	id_value, _ := strconv.Atoi(id)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	filter := bson.D{
-		{"id",id_value},
+		{"id", id_value},
 	}
 	update := bson.M{"$push": bson.M{"submissions": sub}}
 	updateResult, err := AnnouncementCl.UpdateOne(ctx, filter, update)
@@ -89,46 +97,77 @@ func InsertSubmission(id, email, filename string) bool {
 	return true
 }
 
-func GetSubmissions(id int) (error,[]models.Submission){
+func GetSubmissions(id int) (error, []models.Submission) {
 	var data models.Assignment
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-		filter := bson.D{
-			{"id", id},
-		}
-		err := AssignmentCl.FindOne(ctx, filter).Decode(&data)
-		if err != nil {
-			return err,nil
-		}
-		fmt.Println(data)
-		return nil,data.Submissions
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	filter := bson.D{
+		{"id", id},
+	}
+	err := AssignmentCl.FindOne(ctx, filter).Decode(&data)
+	if err != nil {
+		return err, nil
+	}
+	fmt.Println(data)
+	return nil, data.Submissions
 }
 
-func GetStudentList(class_code string) (error,[]string){
+func GetStudentList(class_code string) (error, []string) {
 	var data models.Class
-		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-		defer cancel()
-		filter := bson.D{
-			{"code", class_code},
-		}
-		err := ClassCl.FindOne(ctx, filter).Decode(&data)
-		if err != nil {
-			return err,nil
-		}
-		fmt.Println(data)
-		return nil,data.StudentList
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+	filter := bson.D{
+		{"code", class_code},
+	}
+	err := ClassCl.FindOne(ctx, filter).Decode(&data)
+	if err != nil {
+		return err, nil
+	}
+	fmt.Println(data)
+	return nil, data.StudentList
 }
 
-func InsertAnnouncement(input models.Announcement,email string)(bool){
-	input.ID=utility.GenerateUUID()
-	ok:=Insert(AnnouncementCl,input)
-	if ok{
-        err:=UpdateTeacher(email,"post",input.ID)
-		if err!=nil{
+func InsertAnnouncement(input models.Announcement, email string) bool {
+	input.ID = utility.GenerateUUID()
+	ok := Insert(AnnouncementCl, input)
+	if ok {
+		err := UpdateTeacher(email, "post", input.ID)
+		if err != nil {
 			fmt.Println(err)
 			return false
 		}
 		return true
 	}
 	return false
+}
+
+func GetAllClass() (bool, []map[string]interface{}) {
+	filter := bson.D{{}}
+	err, data := FindAll(ClassCl, filter)
+	if err != nil {
+		return false, []map[string]interface{}{}
+	}
+	return true, data
+}
+
+func GetAllAnnouncement(class string) (bool, []map[string]interface{}) {
+	filter := bson.D{
+		primitive.E{Key: "class_code", Value: class},
+	}
+	err, data := FindAll(AnnouncementCl, filter)
+	if err != nil {
+		return false, []map[string]interface{}{}
+	}
+	return true, data
+}
+
+func GetAllAssignment(class string) (bool, []map[string]interface{}) {
+	filter := bson.D{
+		primitive.E{Key: "class_code", Value: class},
+	}
+	err, data := FindAll(AssignmentCl, filter)
+	if err != nil {
+		return false, []map[string]interface{}{}
+	}
+	return true, data
 }

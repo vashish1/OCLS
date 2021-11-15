@@ -8,7 +8,6 @@ import (
 
 	"github.com/vashish1/OCLS/backend/models"
 	"github.com/vashish1/OCLS/backend/utility"
-
 )
 
 func Auth(next http.Handler) http.Handler {
@@ -23,8 +22,8 @@ func Auth(next http.Handler) http.Handler {
 			ok, details := VerifyAuthToken(tokenString)
 			if ok {
 				//Todo add details to context
-				con:=context.WithValue(r.Context(),"type",details["type"])
-				newCon :=context.WithValue(con,"email",details["email"])
+				con := context.WithValue(r.Context(), "type", details["type"])
+				newCon := context.WithValue(con, "email", details["email"])
 				next.ServeHTTP(w, r.WithContext(newCon))
 				return
 			}

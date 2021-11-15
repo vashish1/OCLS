@@ -14,15 +14,15 @@ import (
 )
 
 //Colections in database
-var StudentCl, TeacherCl, ClassCl, AssignmentCl,AnnouncementCl *mongo.Collection
+var StudentCl, TeacherCl, ClassCl, AssignmentCl, AnnouncementCl *mongo.Collection
 
 func init() {
-	StudentCl, TeacherCl, ClassCl,AssignmentCl,AnnouncementCl = Createdb()
+	StudentCl, TeacherCl, ClassCl, AssignmentCl, AnnouncementCl = Createdb()
 
 }
 
 //Createdb creates a database
-func Createdb() (*mongo.Collection,*mongo.Collection,*mongo.Collection,*mongo.Collection,*mongo.Collection ) {
+func Createdb() (*mongo.Collection, *mongo.Collection, *mongo.Collection, *mongo.Collection, *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	// db := os.Getenv("DbURL")
@@ -39,7 +39,7 @@ func Createdb() (*mongo.Collection,*mongo.Collection,*mongo.Collection,*mongo.Co
 	classdb := client.Database("OCLS").Collection("Class")
 	Assignmentdb := client.Database("OCLS").Collection("Assignment")
 	Announcementdb := client.Database("OCLS").Collection("Announcement")
-	return studentdb, teacherdb, classdb, Assignmentdb,Announcementdb
+	return studentdb, teacherdb, classdb, Assignmentdb, Announcementdb
 }
 func UserExists(email string) (bool, map[string]interface{}) {
 	if ok, user := Find(StudentCl, email); ok {
@@ -80,3 +80,32 @@ func UpdateTeacher(email, key string, value interface{}) error {
 	return nil
 }
 
+func FindAll(c *mongo.Collection, filter interface{}) (error, []map[string]interface{}) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	var result []map[string]interface{}
+	cur, err := c.Find(ctx, filter, options.Find())
+
+	if err != nil {
+
+		fmt.Println("the error is:", err)
+		return err, []map[string]interface{}{}
+	}
+	for cur.Next(context.TODO()) {
+		var elem *map[string]interface{}
+		err := cur.Decode(&elem)
+		if err != nil {
+			return err, []map[string]interface{}{}
+		}
+		fmt.Println(elem)
+		result = append(result, *elem)
+	}
+	if err := cur.Err(); err != nil {
+
+		fmt.Println("cursor error", err)
+		return err, []map[string]interface{}{}
+	}
+	cur.Close(context.TODO())
+	return nil, result
+}
