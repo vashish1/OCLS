@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"time"
 
 	"cloud.google.com/go/storage"
@@ -31,13 +30,6 @@ func SHA256ofstring(p string) string {
 }
 
 func UploadFile(object string, file multipart.File) error {
-	b, err := io.ReadAll(file)
-	if err != nil {
-		return err
-	}
-	tmpFile, err := os.OpenFile(object, os.O_RDWR|os.O_CREATE, 0755)
-	_, err = tmpFile.Write(b)
-	defer tmpFile.Close()
 
 	bucket := "batbuck"
 	ctx := context.Background()
@@ -52,7 +44,7 @@ func UploadFile(object string, file multipart.File) error {
 
 	// Upload an object with storage.Writer.
 	wc := client.Bucket(bucket).Object(object).NewWriter(ctx)
-	if _, err = io.Copy(wc, tmpFile); err != nil {
+	if _, err = io.Copy(wc, file); err != nil {
 		return err
 	}
 	if err := wc.Close(); err != nil {

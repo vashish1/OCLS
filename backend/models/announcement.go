@@ -10,6 +10,7 @@ type Assignment struct {
 	Description string       `json:"description"`
 	FileName    string       `json:"file_name"`
 	Submissions []Submission `json:"submissions"`
+	Date time.Time     `json:"date"`
 }
 
 type Submission struct {

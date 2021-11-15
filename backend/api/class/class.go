@@ -105,3 +105,4 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+

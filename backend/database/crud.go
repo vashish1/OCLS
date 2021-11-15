@@ -34,3 +34,19 @@ func Find(c *mongo.Collection, email string) (bool, map[string]interface{}) {
 	fmt.Println(data)
 	return true, data
 }
+
+// func GetData(c *mongo.Collection,key string,value interface{}) (error,map[string]interface{}){
+// 	var data map[string]interface{}
+// 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+// 	defer cancel()
+// 	filter := bson.D{
+// 		{key, value},
+// 	}
+// 	err := c.FindOne(ctx, filter).Decode(&data)
+// 	if err != nil {
+// 		return err,nil
+// 	}
+// 	fmt.Println(data)
+// 	return nil,data
+// }
+
