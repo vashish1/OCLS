@@ -1,10 +1,12 @@
 package class
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/vashish1/OCLS/backend/api/Notification"
 	"github.com/vashish1/OCLS/backend/database"
 	"github.com/vashish1/OCLS/backend/models"
 	"github.com/vashish1/OCLS/backend/utility"
@@ -26,6 +28,7 @@ func GiveAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 	var desc = r.FormValue("description")
 	var t = r.FormValue("date")
+	var class_code = r.FormValue("class_code")
 	file, h, err := r.FormFile("file")
 	if err != nil {
 		res.Error = err.Error()
@@ -51,6 +54,13 @@ func GiveAssignment(w http.ResponseWriter, r *http.Request) {
 				Message: "Assignment Added",
 			}
 			code = http.StatusAccepted
+			ok := Notification.SendEmail(class_code, t)
+			if ok {
+				fmt.Println("email sent")
+			} else {
+				fmt.Println("email not sent")
+			}
+
 		}
 	} else {
 		res = models.Response{

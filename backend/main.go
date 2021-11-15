@@ -7,6 +7,9 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+
+	// "github.com/vashish1/OCLS/backend/api/Notification"
+	"github.com/vashish1/OCLS/backend/api/Notification"
 	"github.com/vashish1/OCLS/backend/api/auth"
 	"github.com/vashish1/OCLS/backend/api/class"
 	"github.com/vashish1/OCLS/backend/middleware"
@@ -14,6 +17,8 @@ import (
 
 func main() {
 	fmt.Println("ok running")
+	ok := Notification.SendEmail("fd0aea","01:02:2012")
+	fmt.Println(ok)
 	r := mux.NewRouter()
 	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "PUT", "DELETE"})

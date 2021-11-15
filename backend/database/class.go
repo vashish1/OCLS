@@ -98,3 +98,18 @@ func GetSubmissions(id int) (error,[]models.Submission){
 		fmt.Println(data)
 		return nil,data.Submissions
 }
+
+func GetStudentList(class_code string) (error,[]string){
+	var data models.Class
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		filter := bson.D{
+			{"code", class_code},
+		}
+		err := ClassCl.FindOne(ctx, filter).Decode(&data)
+		if err != nil {
+			return err,nil
+		}
+		fmt.Println(data)
+		return nil,data.StudentList
+}
