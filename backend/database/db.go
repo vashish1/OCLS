@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/vashish1/OCLS/backend/models"
+	"github.com/vashish1/OCLS/backend/utility"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -41,7 +42,20 @@ func Createdb() (*mongo.Collection, *mongo.Collection, *mongo.Collection, *mongo
 	Announcementdb := client.Database("OCLS").Collection("Announcement")
 	return studentdb, teacherdb, classdb, Assignmentdb, Announcementdb
 }
-func UserExists(email string) (bool, map[string]interface{}) {
+func UserExists(email, pass string) (bool, map[string]interface{}) {
+	if ok, user := Find(StudentCl, email); ok {
+		if utility.SHA256ofstring(pass) == user["password"].(string) {
+			return true, user
+		}
+	} else if ok, user := Find(TeacherCl, email); ok {
+		if utility.SHA256ofstring(pass) == user["password"].(string) {
+			return true, user
+		}
+	}
+	return false, map[string]interface{}{}
+}
+
+func CheckEmail(email string) (bool, map[string]interface{}) {
 	if ok, user := Find(StudentCl, email); ok {
 		return true, user
 	} else if ok, user := Find(TeacherCl, email); ok {
@@ -52,6 +66,10 @@ func UserExists(email string) (bool, map[string]interface{}) {
 
 func Insertintodb(data map[string]interface{}) (bool, error) {
 	var ok bool
+	if data["password"] != nil {
+		pass := utility.SHA256ofstring(data["password"].(string))
+		data["password"] = pass
+	}
 	//If user type is student insert in student database else in teacher database
 	if (int)(data["type"].(float64)) == models.Type_Student {
 		ok = Insert(StudentCl, data)
@@ -61,7 +79,6 @@ func Insertintodb(data map[string]interface{}) (bool, error) {
 	if ok {
 		return true, nil
 	}
-
 	return false, errors.New("Error while inserting into database")
 }
 

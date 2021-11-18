@@ -11,16 +11,14 @@ import (
 	"github.com/vashish1/OCLS/backend/utility"
 )
 
-type login struct {
+type login_google struct {
+	Name string `json:"password,omitempty"`
 	Email    string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
 }
 
-//login to Implement Login of user.
-func Login(w http.ResponseWriter, r *http.Request) {
-
+func LoginGoogle(w http.ResponseWriter,r *http.Request){
 	w.Header().Set("Content-Type", "application/json")
-	var input login
+	var input login_google
 	var res models.Response
 	var code int
 	body, _ := ioutil.ReadAll(r.Body)
@@ -33,7 +31,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	//Check if the user exissts with such credentials
 	//donon ka check krna padega student aur teacher phir jwt uske acc create krna hai
-	ok, user := db.UserExists(input.Email, input.Password)
+	ok,user := db.CheckEmail(input.Email)
 	if ok {
 		tokenstring, err := middleware.GenerateAuthToken(input.Email, (int)(user["type"].(float64)))
 		if err != nil {

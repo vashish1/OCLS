@@ -4,10 +4,11 @@ package models
 // to a Student.
 
 type Student struct {
-	Name      string   `json:"name,omitempty"`
-	Email     string   `json:"email,omitempty"`
-	AdmNo     string   `json:"adm_no,omitempty"`
-	Phone     string   `json:"phone,omitempty"`
+	Name      string   `json:"name,"`
+	Password  string   `json:"password,"`
+	Email     string   `json:"email,"`
+	AdmNo     string   `json:"adm_no,"`
+	Phone     string   `json:"phone,"`
 	ClassCode []string `json:"class_code"`
 	Type      int      `json:"type"`
 }

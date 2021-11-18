@@ -37,7 +37,7 @@ func VerifyAuthToken(tokenString string) (bool, map[string]interface{}) {
 		email = claims["email"].(string)
 	}
 
-	ok, user := db.UserExists(email)
+	ok, user := db.CheckEmail(email)
 	if ok && user["type"].(float64) == user_type {
 		return ok, user
 	}

@@ -13,3 +13,7 @@ marshal body ka response shi krna hai sb api mein
 get assignment api and get announcement api
 
 convert it into fasthttp
+
+update user profile
+
+agr google se signup horha hai toh password ko signup pe call krte time nil set krna hai

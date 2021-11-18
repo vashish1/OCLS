@@ -1,9 +1,11 @@
 package models
 
 type Teacher struct {
-	Email      string   `json:"email,omitempty"`
-	Type       int      `json:"type,omitempty"`
-	Post       []int    `json:"post,omitempty"`  //to store announcement ID's
-	Class      []string `json:"class,omitempty"` //to store class ID's
+	Name string     `json:"name,"`
+	Email      string   `json:"email,"`
+	Password   string   `json:"password,"`
+	Type       int      `json:"type,="`
+	Post       []int    `json:"post,"`  //to store announcement ID's
+	Class      []string `json:"class,"` //to store class ID's
 	Assignment []int    `json:"assignment"`      //to store the assignment ID's
 }

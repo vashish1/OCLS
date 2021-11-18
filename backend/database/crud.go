@@ -49,3 +49,9 @@ func Find(c *mongo.Collection, email string) (bool, map[string]interface{}) {
 // 	fmt.Println(data)
 // 	return nil,data
 // }
+
+func CheckUser(email string) bool{
+	ok1,_:=Find(StudentCl,email)
+	ok2,_:=Find(TeacherCl,email)
+	return ok1||ok2
+}
