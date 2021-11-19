@@ -13,11 +13,8 @@ import (
 )
 
 // Content-Type: application/pdf
-func GiveAssignment(w http.ResponseWriter, r *http.Request) {
-	email := r.Context().Value("email")
-	var res models.Response
-	var code int
-
+func CreateAssignment(w http.ResponseWriter, r *http.Request) {
+	email, res, code := get(r)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
 	if err != nil {
 		res.Error = err.Error()
@@ -68,14 +65,10 @@ func GiveAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 	utility.SendResponse(w, res, code)
 	return
-
 }
 
 func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
-	email := r.Context().Value("email").(string)
-	var res models.Response
-	var code int
-
+	email, res, code := get(r)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
 	if err != nil {
 		res.Error = err.Error()
@@ -102,7 +95,7 @@ func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusInternalServerError
 	}
 
-	ok := database.InsertSubmission(id, email, h.Filename)
+	ok := database.InsertSubmission(id, email.(string), h.Filename)
 	if ok {
 		res = models.Response{
 			Success: true,
@@ -121,6 +114,7 @@ func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
+
 	id := mux.Vars(r)["id"]
 	id_value, _ := strconv.Atoi(id)
 	var res models.Response

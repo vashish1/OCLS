@@ -17,3 +17,11 @@ convert it into fasthttp
 update user profile
 
 agr google se signup horha hai toh password ko signup pe call krte time nil set krna hai
+
+check the timing of submission
+
+fix mails
+update name in the submissions
+
+point to remember in frontend, form ans submission ke time jis bhi question
+ ko khali chodeinge us ques mein ans "" nil jaega

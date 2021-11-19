@@ -13,9 +13,7 @@ import (
 
 func CreateClass(w http.ResponseWriter, r *http.Request) {
 	user_type := r.Context().Value("type")
-	email := r.Context().Value("email")
-	var res models.Response
-	var code int
+	email, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
 		res = models.Response{
 			Success: false,
@@ -59,9 +57,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 
 func JoinClass(w http.ResponseWriter, r *http.Request) {
 	user_type := r.Context().Value("type")
-	email := r.Context().Value("email")
-	var res models.Response
-	var code int
+	email, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
 		res = models.Response{
 			Success: false,
@@ -104,9 +100,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 
 func CreateAnnouncement(w http.ResponseWriter, r *http.Request) {
 	user_type := r.Context().Value("type")
-	email := r.Context().Value("email")
-	var res models.Response
-	var code int
+	email, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
 		res = models.Response{
 			Success: false,
@@ -221,3 +215,4 @@ func GetAssignment(w http.ResponseWriter, r *http.Request) {
 	utility.SendResponse(w, res, http.StatusInternalServerError)
 	return
 }
+
