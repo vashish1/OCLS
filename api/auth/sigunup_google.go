@@ -29,7 +29,7 @@ var (
 
 func init() {
 
-	f, err := ioutil.ReadFile("./api/auth/creds.json")
+	f, err := ioutil.ReadFile("./api/auth/creds2.json")
 	if err != nil {
 		fmt.Println("could not read the file:", err)
 	}
@@ -37,7 +37,7 @@ func init() {
 	// fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
-		RedirectURL:  cred.Redirect[0],
+		RedirectURL:  cred.Redirect[1],
 		ClientID:     cred.Cid,
 		ClientSecret: cred.Csecret,
 		Scopes: []string{
