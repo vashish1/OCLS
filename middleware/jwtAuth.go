@@ -8,7 +8,7 @@ import (
 	db "github.com/vashish1/OCLS/database"
 )
 
-var Secret = []byte(os.Getenv("secret key"))
+var Secret = []byte(os.Getenv("secretkey"))
 
 func GenerateAuthToken(email, name string, user_type int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
