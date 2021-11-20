@@ -10,10 +10,11 @@ import (
 
 var Secret = []byte(os.Getenv("secret key"))
 
-func GenerateAuthToken(email string, user_type int) (string, error) {
+func GenerateAuthToken(email,name string, user_type int) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"type":  user_type,
 		"email": email,
+		"name": name,
 	})
 
 	tokenString, err := token.SignedString([]byte(Secret))
@@ -35,6 +36,7 @@ func VerifyAuthToken(tokenString string) (bool, map[string]interface{}) {
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		user_type = claims["type"].(float64)
 		email = claims["email"].(string)
+		_=claims["name"].(string)
 	}
 
 	ok, user := db.CheckEmail(email)

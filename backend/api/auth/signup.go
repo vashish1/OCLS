@@ -11,8 +11,6 @@ import (
 	"github.com/vashish1/OCLS/backend/utility"
 )
 
-//email verification bhi add krni hai student aur teacher ke liye
-//pass encrypt bhi krna hai
 func Signup(w http.ResponseWriter, r *http.Request) {
 	var input map[string]interface{}
 	var res models.Response
@@ -21,8 +19,12 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(`{"error": "body not parsed"}`))
+		res = models.Response{
+			Success: false,
+			Error: err.Error(),
+		}
+		code = http.StatusBadRequest
+     	utility.SendResponse(w, res, code)
 		return
 	}
 	if ok := database.CheckUser(input["email"].(string)); ok {
@@ -41,6 +43,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusAccepted
 	} else {
 		res = models.Response{
+			Success: false,
 			Error: err.Error(),
 		}
 		code = http.StatusBadRequest

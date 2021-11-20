@@ -14,7 +14,7 @@ import (
 
 //solve the problem of same classname
 func InsertClass(input models.Class, email string) (bool, string) {
-	input.Code = utility.SHA256ofstring(input.TeacherEmail)[0:6]
+	input.Code = utility.SHA256ofstring(input.Subject)[0:6]+email[2:5]
 	ok := Insert(ClassCl, input)
 	if ok {
 		err := UpdateTeacher(email, "class", input.Code)
@@ -27,14 +27,18 @@ func InsertClass(input models.Class, email string) (bool, string) {
 	return false, ""
 }
 
-func UpdataClassData(code, email string) bool {
+func UpdataClassData(code, email,name string) bool {
 	//Step 1 :add student email to class
+	input:=models.List{
+		Name: name,
+		Email: email,
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	filter := bson.D{
 		{"code", code},
 	}
-	update := bson.M{"$push": bson.M{"student_list": email}}
+	update := bson.M{"$push": bson.M{"student_list": input}}
 	updateResult, err := ClassCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
@@ -56,12 +60,13 @@ func UpdataClassData(code, email string) bool {
 	return true
 }
 
-func InsertAssignment(desc, t, file, class, email string) bool {
+func InsertAssignment(desc, t, file, class, email,name string) bool {
 	date, _ := time.Parse("2006-01-02T15:04", t)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Class_code:  class,
 		Description: desc,
+		Name: name,
 		Type:        models.Type_Written,
 		File: models.Written{
 			FileName: "https://storage.googleapis.com/batbuck/" + file,
@@ -77,11 +82,12 @@ func InsertAssignment(desc, t, file, class, email string) bool {
 	return false
 }
 
-func InsertMcq(input models.Mcq,t,code,desc, email string) bool{
+func InsertMcq(input models.Mcq,t,code,desc, email,name string) bool{
 	date, _ := time.Parse("2006-01-02T15:04", t)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Class_code:  code,
+		Name: name,
 		Description: desc,
 		Type:        models.Type_Mcq,
 		Form: input,
@@ -95,7 +101,7 @@ func InsertMcq(input models.Mcq,t,code,desc, email string) bool{
 	}
 	return false
 }
-func InsertMcqSubmission(id int,ans []string,email string)bool{
+func InsertMcqSubmission(id int,ans []string,email,name string)bool{
 	date := time.Now().Format("2006-01-02 T 15:04")
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
@@ -114,9 +120,8 @@ func InsertMcqSubmission(id int,ans []string,email string)bool{
 		  score++
 	  }
 	}
-   _,user:=Find(StudentCl,email)
    input := models.Submission{
-		Name: user["name"].(string),
+		Name: name,
 		Email: email,
 		Timestamp: date,
 		Score: score,
@@ -132,11 +137,12 @@ func InsertMcqSubmission(id int,ans []string,email string)bool{
 	return true
 
 }
-func InsertSubmission(id, email, filename string) bool {
+func InsertSubmission(id, email,name, filename string) bool {
 
 	date := time.Now().Format("2006-01-02 T 15:04")
 	var sub = models.Submission{
 		Email:     email,
+		Name: name,
 		Timestamp: date,
 		FileName:  "https://storage.googleapis.com/batbuck/" + filename,
 	}
@@ -170,7 +176,7 @@ func GetSubmissions(id int) (error, []models.Submission) {
 	return nil, data.File.Submissions
 }
 
-func GetStudentList(class_code string) (error, []string) {
+func GetStudentList(class_code string) (error, []models.List) {
 	var data models.Class
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()

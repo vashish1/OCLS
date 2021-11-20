@@ -13,7 +13,7 @@ import (
 
 func CreateClass(w http.ResponseWriter, r *http.Request) {
 	user_type := r.Context().Value("type")
-	email, res, code := get(r)
+	email, name, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
 		res = models.Response{
 			Success: false,
@@ -28,12 +28,17 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
 	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
+		res = models.Response{
+			Success: false,
+			Message: "Error while Reading Request body",
+		}
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
 		return
 	}
-	input.TeacherEmail = email.(string)
-	ok, class_code := database.InsertClass(input, email.(string))
+	input.TeacherEmail = email
+	input.TeacherName=name
+	ok, class_code := database.InsertClass(input, email)
 	fmt.Println(ok, class_code)
 	if ok {
 		res = models.Response{
@@ -47,7 +52,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 	}
 	res = models.Response{
 		Success: false,
-		Message: "Error while creating class",
+		Message: "Error while creating class,try using another name",
 	}
 	code = http.StatusBadRequest
 
@@ -57,11 +62,11 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 
 func JoinClass(w http.ResponseWriter, r *http.Request) {
 	user_type := r.Context().Value("type")
-	email, res, code := get(r)
-	if (int)(user_type.(float64)) != models.Type_Teacher {
+	email, name, res, code := get(r)
+	if (int)(user_type.(float64)) != models.Type_Student {
 		res = models.Response{
 			Success: false,
-			Message: "unauthorized user for request",
+			Error: "unauthorized user for request",
 		}
 		code = http.StatusBadRequest
 		utility.SendResponse(w, res, code)
@@ -69,17 +74,21 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	var input struct {
-		Class_Code string
+		Class_Code string `json:"class_code,required"`
 	}
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
 	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
+		res = models.Response{
+			Success: false,
+			Error: "Error while Reading Request body",
+		}
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
 		return
 	}
 
-	ok := database.UpdataClassData(input.Class_Code, email.(string))
+	ok := database.UpdataClassData(input.Class_Code, email,name)
 	if ok {
 		res = models.Response{
 			Success: true,
@@ -89,7 +98,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 	} else {
 		res = models.Response{
 			Success: false,
-			Message: "Error while joining the class",
+			Error: "Error while joining the class",
 		}
 		code = http.StatusForbidden
 	}
@@ -98,107 +107,10 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func CreateAnnouncement(w http.ResponseWriter, r *http.Request) {
-	user_type := r.Context().Value("type")
-	email, res, code := get(r)
-	if (int)(user_type.(float64)) != models.Type_Teacher {
-		res = models.Response{
-			Success: false,
-			Message: "unauthorized user for request",
-		}
-		code = http.StatusBadRequest
-		utility.SendResponse(w, res, code)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	var input models.Announcement
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &input)
-	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	ok := database.InsertAnnouncement(input, email.(string))
-	if ok {
-		res = models.Response{
-			Success: true,
-			Message: "Announcement added Successfully",
-		}
-		code = http.StatusAccepted
-	} else {
-		res = models.Response{
-			Success: false,
-			Error:   "Error while adding announcement",
-		}
-		code = http.StatusAccepted
-	}
-
-}
 
 func GetClass(w http.ResponseWriter, r *http.Request) {
 
 	ok, data := database.GetAllClass()
-	if ok {
-		res := models.Response{
-			Success: true,
-			Message: "dlass data fetch successful",
-			Data:    data,
-		}
-		utility.SendResponse(w, res, http.StatusOK)
-		return
-	}
-	res := models.Response{
-		Success: false,
-		Error:   "error while fetching data",
-	}
-	utility.SendResponse(w, res, http.StatusInternalServerError)
-	return
-}
-
-func GetAnnouncement(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Class string `json:"class,omitempty"`
-	}
-	w.Header().Set("Content-Type", "application/json")
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &input)
-	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	ok, data := database.GetAllAnnouncement(input.Class)
-	if ok {
-		res := models.Response{
-			Success: true,
-			Message: "dlass data fetch successful",
-			Data:    data,
-		}
-		utility.SendResponse(w, res, http.StatusOK)
-		return
-	}
-	res := models.Response{
-		Success: false,
-		Error:   "error while fetching data",
-	}
-	utility.SendResponse(w, res, http.StatusInternalServerError)
-	return
-}
-
-func GetAssignment(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		Class string `json:"class,omitempty"`
-	}
-	w.Header().Set("Content-Type", "application/json")
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &input)
-	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-	ok, data := database.GetAllAssignment(input.Class)
 	if ok {
 		res := models.Response{
 			Success: true,
@@ -215,4 +127,3 @@ func GetAssignment(w http.ResponseWriter, r *http.Request) {
 	utility.SendResponse(w, res, http.StatusInternalServerError)
 	return
 }
-

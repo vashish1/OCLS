@@ -14,7 +14,7 @@ func Insert(c *mongo.Collection, data interface{}) bool {
 	defer cancel()
 	_, err := c.InsertOne(ctx, data)
 	if err != nil {
-		fmt.Print("couldn't insert the document.")
+		fmt.Print("couldn't insert the document:",err)
 		return false
 	}
 	return true

@@ -5,15 +5,21 @@ import "time"
 const (
 	Type_Teacher = 1
 	Type_Student = 2
-	Type_Written=00
-	Type_Mcq=11
+	Type_Written = 00
+	Type_Mcq     = 11
 )
 
 type Class struct {
-	Name         string   `json:"name,omitempty"`
-	Code         string   `json:"code,omitempty"`
-	TeacherEmail string   `json:"teacher_email,omitempty"`
-	StudentList  []string `json:"student_list,omitempty"`
+	Subject         string   `json:"subject,required"`
+	Code         string   `json:"code"`
+	TeacherEmail string   `json:"teacher_email"`
+	TeacherName string    `json:"teacher_name"`
+	StudentList  []List `json:"student_list"`
+}
+
+type List struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 // type Assignment struct {
@@ -29,8 +35,9 @@ type Assignment struct {
 	ID          int       `json:"id,omitempty"`
 	Class_code  string    `json:"class_code,omitempty"`
 	Type        int       `json:"type,omitempty"`
-	Form        Mcq     `json:"form,omitempty"`
-	File        Written `json:"file,omitempty"`
+	Name        string    `json:"name,omitempty"`
+	Form        Mcq       `json:"form,omitempty"`
+	File        Written   `json:"file,omitempty"`
 	Date        time.Time `json:"date,omitempty"`
 	Description string    `json:"description,omitempty"`
 }
@@ -59,6 +66,7 @@ type Submission struct {
 
 type Announcement struct {
 	ID          int    `json:"id,omitempty"`
+	TeacherName string `json:"teacher_name",omitempty"`
 	ClassCode   string `json:"class_code,omitempty"`
 	Description string `json:"description,omitempty"`
 	Timestamp   string `json:"timestamp,omitempty"`

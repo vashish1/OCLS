@@ -25,3 +25,7 @@ update name in the submissions
 
 point to remember in frontend, form ans submission ke time jis bhi question
  ko khali chodeinge us ques mein ans "" nil jaega
+
+ create an api for user data and user data update
+
+ get all classes wrt 

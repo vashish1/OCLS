@@ -16,9 +16,9 @@ import (
 )
 
 func SendResponse(w http.ResponseWriter, data models.Response, code int) {
+	w.WriteHeader(code)
 	b, _ := json.Marshal(data)
 	w.Write(b)
-	w.WriteHeader(code)
 	return
 }
 

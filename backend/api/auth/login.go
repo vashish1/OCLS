@@ -2,6 +2,7 @@ package auth
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -26,21 +27,29 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
 	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
+	    res = models.Response{
+			Success: false,
+			Error: err.Error(),
+		}
+		code = http.StatusBadRequest
+     	utility.SendResponse(w, res, code)
 		return
 	}
-
-	//Check if the user exissts with such credentials
-	//donon ka check krna padega student aur teacher phir jwt uske acc create krna hai
+	var name string
+	
 	ok, user := db.UserExists(input.Email, input.Password)
 	if ok {
-		tokenstring, err := middleware.GenerateAuthToken(input.Email, (int)(user["type"].(float64)))
+		if(user["name"]==nil){
+			name=""
+		}else{
+			name = user["name"].(string)
+		}
+		tokenstring, err := middleware.GenerateAuthToken(input.Email,name, (int)(user["type"].(float64)))
 		if err != nil {
+			fmt.Println(err)
 			res = models.Response{
 				Success: false,
-				Message: "Incorrect Credentials, Try Again. ",
-				Error:   err.Error(),
+				Error: "Incorrect Credentials, Try Again. ",
 			}
 			code = http.StatusBadRequest
 		} else {
@@ -58,8 +67,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	res = models.Response{
 		Success: false,
-		Message: "no such user exist",
+		Error: "no such user exist",
 	}
+	code=http.StatusBadRequest
 	utility.SendResponse(w, res, code)
 	return
 }

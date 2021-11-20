@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/vashish1/OCLS/backend/models"
@@ -19,15 +20,25 @@ var StudentCl, TeacherCl, ClassCl, AssignmentCl, AnnouncementCl *mongo.Collectio
 
 func init() {
 	StudentCl, TeacherCl, ClassCl, AssignmentCl, AnnouncementCl = Createdb()
-
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	mod := mongo.IndexModel{
+		Keys: bson.M{
+		"code": 1, // index in ascending order
+		}, Options: options.Index().SetUnique(true),
+		}
+		_, err := ClassCl.Indexes().CreateOne(ctx, mod)
+		if err!=nil{
+			fmt.Println(err)
+		}
 }
 
 //Createdb creates a database
 func Createdb() (*mongo.Collection, *mongo.Collection, *mongo.Collection, *mongo.Collection, *mongo.Collection) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	// db := os.Getenv("DbURL")
-	dbURL := "mongodb+srv://yashi:Doraemon&1@cluster0.2pscc.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
+	dbURL := os.Getenv("DbURL")
+	// dbURL := "mongodb+srv://yashi:Doraemon&1@cluster0.2pscc.mongodb.net/myFirstDatabase?retryWrites=true&w=majority"
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(
 		dbURL,
 	))

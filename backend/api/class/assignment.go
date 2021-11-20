@@ -1,7 +1,9 @@
 package class
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -14,7 +16,7 @@ import (
 
 // Content-Type: application/pdf
 func CreateAssignment(w http.ResponseWriter, r *http.Request) {
-	email, res, code := get(r)
+	email, name, res, code := get(r)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
 	if err != nil {
 		res.Error = err.Error()
@@ -43,7 +45,7 @@ func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusInternalServerError
 	}
 
-	ok := database.InsertAssignment(desc, t, h.Filename, class_code, email.(string))
+	ok := database.InsertAssignment(desc, t, h.Filename, class_code, email, name)
 	if ok {
 		res = models.Response{
 			Success: true,
@@ -68,7 +70,7 @@ func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 }
 
 func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
-	email, res, code := get(r)
+	email, name, res, code := get(r)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
 	if err != nil {
 		res.Error = err.Error()
@@ -95,7 +97,7 @@ func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusInternalServerError
 	}
 
-	ok := database.InsertSubmission(id, email.(string), h.Filename)
+	ok := database.InsertSubmission(id, email, name, h.Filename)
 	if ok {
 		res = models.Response{
 			Success: true,
@@ -131,5 +133,41 @@ func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
 		code = http.StatusBadRequest
 	}
 	utility.SendResponse(w, res, code)
+	return
+}
+
+func GetAssignment(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Class string `json:"class,omitempty"`
+	}
+	var res models.Response
+	var code int
+	w.Header().Set("Content-Type", "application/json")
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		res = models.Response{
+			Success: false,
+			Error: "Error while Reading Request body",
+		}
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
+		return
+	}
+	ok, data := database.GetAllAssignment(input.Class)
+	if ok {
+		res = models.Response{
+			Success: true,
+			Message: "class data fetch successful",
+			Data:    data,
+		}
+		utility.SendResponse(w, res, http.StatusOK)
+		return
+	}
+	res = models.Response{
+		Success: false,
+		Error:   "error while fetching data",
+	}
+	utility.SendResponse(w, res, http.StatusInternalServerError)
 	return
 }

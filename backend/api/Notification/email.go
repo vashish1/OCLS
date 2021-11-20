@@ -2,15 +2,16 @@ package Notification
 
 import (
 	"fmt"
+	"os"
 
 	mailjet "github.com/mailjet/mailjet-apiv3-go"
 	"github.com/vashish1/OCLS/backend/database"
 )
 
-// var key, pass = os.Getenv("SMTP_KEY"), os.Getenv("SMTP_PASS")
+var key, pass = os.Getenv("SMTP_KEY"), os.Getenv("SMTP_PASS")
 
-var key = "3c00f30e08727673f60cbab04ca3e4a2"
-var pass = "3658491e742f5fa9d2f54fa1d76a556f"
+// var key = "3c00f30e08727673f60cbab04ca3e4a2"
+// var pass = "3658491e742f5fa9d2f54fa1d76a556f"
 
 var from = &mailjet.RecipientV31{
 	Email: "vashishtiv@gmail.com",
@@ -32,8 +33,8 @@ func SendEmail(class_code, date string) bool {
 				From: from,
 				To: &mailjet.RecipientsV31{
 					mailjet.RecipientV31{
-						Email: mail,
-						Name:  "Student",
+						Email: mail.Email,
+						Name:  mail.Name,
 					},
 				},
 				Subject:  "Assignment Due",

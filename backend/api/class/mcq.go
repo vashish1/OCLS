@@ -13,7 +13,7 @@ import (
 )
 
 func CreateMCQ(w http.ResponseWriter, r *http.Request) {
-	email, res, code := get(r)
+	email, name, res, code := get(r)
 	w.Header().Set("Content-Type", "application/json")
 	var input struct {
 		Mcq  models.Mcq
@@ -28,7 +28,7 @@ func CreateMCQ(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	ok := database.InsertMcq(input.Mcq, input.Date, input.Code, input.Desc, email.(string))
+	ok := database.InsertMcq(input.Mcq, input.Date, input.Code, input.Desc, email,name)
 	if ok {
 		res = models.Response{
 			Success: true,
@@ -52,15 +52,22 @@ func CreateMCQ(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func get(r *http.Request) (interface{}, models.Response, int) {
-	email := r.Context().Value("email")
+func get(r *http.Request) (string, string, models.Response, int) {
+	email := r.Context().Value("email").(string)
+	name := r.Context().Value("name")
+	var user_name string
+	if name==nil{
+       user_name=""
+	} else{
+		user_name=name.(string)
+	}
 	var res models.Response
 	var code int
-	return email, res, code
+	return email, user_name, res, code
 }
 
 func SubmitMcq(w http.ResponseWriter, r *http.Request) {
-	email, res, code := get(r)
+	email, name, res, code := get(r)
 	w.Header().Set("Content-Type", "application/json")
 	var input struct {
 		ID  int
@@ -73,7 +80,7 @@ func SubmitMcq(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	ok := database.InsertMcqSubmission(input.ID, input.Ans, email.(string))
+	ok := database.InsertMcqSubmission(input.ID, input.Ans, email,name)
 	if ok {
 		res = models.Response{
 			Success: true,
