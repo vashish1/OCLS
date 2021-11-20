@@ -34,7 +34,7 @@ func main() {
 	http.Handle("/", handlers.CORS(headers, methods, origins)(r))
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "9000"
+		port = "8000"
 	}
 	http.ListenAndServe(":"+port, nil)
 
