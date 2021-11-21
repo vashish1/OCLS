@@ -26,7 +26,7 @@ func GetAnnouncement(w http.ResponseWriter, r *http.Request) {
 	if ok {
 		res := models.Response{
 			Success: true,
-			Message: "dlass data fetch successful",
+			Message: "class data fetch successful",
 			Data:    data,
 		}
 		utility.SendResponse(w, res, http.StatusOK)
@@ -80,5 +80,5 @@ func CreateAnnouncement(w http.ResponseWriter, r *http.Request) {
 		}
 		code = http.StatusAccepted
 	}
-
+    utility.SendResponse(w,res,code)
 }

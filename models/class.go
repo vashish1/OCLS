@@ -12,9 +12,9 @@ const (
 type Class struct {
 	Subject         string   `json:"subject,required"`
 	Code         string   `json:"code"`
-	TeacherEmail string   `json:"teacher_email"`
-	TeacherName string    `json:"teacher_name"`
-	StudentList  []List `json:"student_list"`
+	TeacherEmail string   `json:"teacheremail"`
+	TeacherName string    `json:"teachername"`
+	StudentList  []List `json:"studentlist"`
 }
 
 type List struct {
@@ -33,7 +33,7 @@ type List struct {
 
 type Assignment struct {
 	ID          int       `json:"id,omitempty"`
-	Class_code  string    `json:"class_code,omitempty"`
+	Classcode  string    `json:"classcode,omitempty"`
 	Type        int       `json:"type,omitempty"`
 	Name        string    `json:"name,omitempty"`
 	Form        Mcq       `json:"form,omitempty"`
@@ -53,11 +53,11 @@ type Questions struct {
 }
 
 type Written struct {
-	FileName    string       `json:"file_name,omitempty"`
+	FileName    string       `json:"filename,omitempty"`
 	Submissions []Submission `json:"submissions,omitempty"`
 }
 type Submission struct {
-	FileName  string `json:"file_name,omitempty"`
+	FileName  string `json:"filename,omitempty"`
 	Name      string `json:"name,omitempty"`
 	Email     string `json:"email,omitempty"`
 	Timestamp string `json:"timestamp,omitempty"`
@@ -66,8 +66,8 @@ type Submission struct {
 
 type Announcement struct {
 	ID          int    `json:"id,omitempty"`
-	TeacherName string `json:"teacher_name",omitempty"`
-	ClassCode   string `json:"class_code,omitempty"`
+	TeacherName string `json:"teachername",omitempty"`
+	ClassCode   string `json:"classcode,omitempty"`
 	Description string `json:"description,omitempty"`
 	Timestamp   string `json:"timestamp,omitempty"`
 }

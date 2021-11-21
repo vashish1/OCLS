@@ -9,34 +9,7 @@ Input- `{
 Output- `{
     "success": true,
     "message": "Signup SuccessFul"
-}`
- or
-`{
-    "success": false,
-    "error": "-----"
-}` 
-
-## Login
-
-Input- `{
-    "email":"yashi.gupta@gmail.com",
-    "password":"qwerty"
-}`
-
-Output- `{
-    "success": true,
-    "message": "Log In successful",
-    "data": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRhQGdtYWlsLmNvbSIsInR5cGUiOjF9.w1qyPVtDE2bgavD-Q3rU-BjQrVDbw2AWodMimD3JJvo"
-}`
-or
-`
-`{
-    "success": false,
-    "message": "------"
-    "error": "-----"
-}`
-
-## signup by google :
+}
 
 In this we will consecutively call two api's one will give the name and email of the user or error
 and then we will ask the user type Student or teacher on that we will call the sighnup api

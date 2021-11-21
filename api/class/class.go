@@ -108,21 +108,24 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetClass(w http.ResponseWriter, r *http.Request) {
-
-	ok, data := database.GetAllClass()
+    email, _, res, code := get(r)
+	user_type := (int)(r.Context().Value("type").(float64))
+	ok, data := database.GetAllClass(email,user_type)
 	if ok {
 		res := models.Response{
 			Success: true,
 			Message: "class data fetch successful",
 			Data:    data,
 		}
-		utility.SendResponse(w, res, http.StatusOK)
+		code=http.StatusOK
+		utility.SendResponse(w, res, code)
 		return
 	}
-	res := models.Response{
+	res = models.Response{
 		Success: false,
 		Error:   "error while fetching data",
 	}
-	utility.SendResponse(w, res, http.StatusInternalServerError)
+	code=http.StatusInternalServerError
+	utility.SendResponse(w, res, code)
 	return
 }

@@ -1,3 +1,4 @@
+
 package class
 
 import (
@@ -116,9 +117,10 @@ func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 	id_value, _ := strconv.Atoi(id)
+	fmt.Println(id)
 	var res models.Response
 	var code int
 	err, data := database.GetSubmissions(id_value)
@@ -130,7 +132,7 @@ func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
 		res.Data = data
 		res.Message = "successful"
 		res.Success = true
-		code = http.StatusBadRequest
+		code = http.StatusOK
 	}
 	utility.SendResponse(w, res, code)
 	return

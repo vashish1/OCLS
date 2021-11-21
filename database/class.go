@@ -64,12 +64,13 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 	date, _ := time.Parse("2006-01-02T15:04", t)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
-		Class_code:  class,
+		Classcode:   class,
 		Description: desc,
 		Name:        name,
 		Type:        models.Type_Written,
 		File: models.Written{
 			FileName: "https://storage.googleapis.com/batbuck/" + file,
+			Submissions: []models.Submission{},
 		},
 		Date: date,
 	}
@@ -84,9 +85,10 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 
 func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 	date, _ := time.Parse("2006-01-02T15:04", t)
+	input.Soln=[]models.Submission{}
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
-		Class_code:  code,
+		Classcode:   code,
 		Name:        name,
 		Description: desc,
 		Type:        models.Type_Mcq,
@@ -101,6 +103,7 @@ func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 	}
 	return false
 }
+
 func InsertMcqSubmission(id int, ans []string, email, name string) bool {
 	date := time.Now().Format("2006-01-02 T 15:04")
 	var data models.Assignment
@@ -129,7 +132,7 @@ func InsertMcqSubmission(id int, ans []string, email, name string) bool {
 	ctx, cancel = context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	update := bson.M{"$push": bson.M{"form.submissions": input}}
-	updateResult, err := AnnouncementCl.UpdateOne(ctx, filter, update)
+	updateResult, err := AssignmentCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
 		return false
@@ -147,13 +150,14 @@ func InsertSubmission(id, email, name, filename string) bool {
 		FileName:  "https://storage.googleapis.com/batbuck/" + filename,
 	}
 	id_value, _ := strconv.Atoi(id)
+	fmt.Println(id," ", id_value)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	filter := bson.D{
 		{"id", id_value},
 	}
 	update := bson.M{"$push": bson.M{"file.submissions": sub}}
-	updateResult, err := AnnouncementCl.UpdateOne(ctx, filter, update)
+	updateResult, err := AssignmentCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
 		return false
@@ -205,18 +209,61 @@ func InsertAnnouncement(input models.Announcement, email string) bool {
 	return false
 }
 
-func GetAllClass() (bool, []map[string]interface{}) {
-	filter := bson.D{{}}
-	err, data := FindAll(ClassCl, filter)
-	if err != nil {
-		return false, []map[string]interface{}{}
+func GetAllClass(email string, user_type int) (bool, []models.Class) {
+	var codes []string
+	if user_type == 1 {
+		var data models.Teacher
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		filter := bson.D{
+			{"email", email},
+		}
+		err := TeacherCl.FindOne(ctx, filter).Decode(&data)
+		if err != nil {
+			fmt.Println(err)
+			return false, []models.Class{}
+		}
+		fmt.Println(data)
+		codes = data.Class
+	} else {
+		var data models.Student
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		filter := bson.D{
+			{"email", email},
+		}
+		err := StudentCl.FindOne(ctx, filter).Decode(&data)
+		if err != nil {
+			fmt.Println(err)
+			return false, []models.Class{}
+		}
+		fmt.Println(data)
+		codes = data.ClassCode
 	}
-	return true, data
+	fmt.Println(codes)
+
+	var result []models.Class
+	for _, c := range codes {
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+		var data models.Class
+		filter := bson.D{
+			{"code", c},
+		}
+		err := ClassCl.FindOne(ctx, filter).Decode(&data)
+		fmt.Println(data)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			result = append(result, data)
+		}
+	}
+	return true, result
 }
 
 func GetAllAnnouncement(class string) (bool, []map[string]interface{}) {
 	filter := bson.D{
-		primitive.E{Key: "class_code", Value: class},
+		primitive.E{Key: "classcode", Value: class},
 	}
 	err, data := FindAll(AnnouncementCl, filter)
 	if err != nil {
@@ -227,7 +274,7 @@ func GetAllAnnouncement(class string) (bool, []map[string]interface{}) {
 
 func GetAllAssignment(class string) (bool, []map[string]interface{}) {
 	filter := bson.D{
-		primitive.E{Key: "class_code", Value: class},
+		primitive.E{Key: "classcode", Value: class},
 	}
 	err, data := FindAll(AssignmentCl, filter)
 	if err != nil {
