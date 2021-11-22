@@ -54,11 +54,11 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			code = http.StatusBadRequest
 		} else {
 			var d struct{
-				user map[string]interface{}
-				token string
+				User map[string]interface{}
+				Token string
 			}
-			d.user=user
-			d.token=tokenstring
+			d.User=user
+			d.Token=tokenstring
 
 			//Send a Successfull Response
 			res = models.Response{
