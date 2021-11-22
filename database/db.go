@@ -68,8 +68,10 @@ func UserExists(email, pass string) (bool, map[string]interface{}) {
 
 func CheckEmail(email string) (bool, map[string]interface{}) {
 	if ok, user := Find(StudentCl, email); ok {
+		fmt.Println("the user is a student")
 		return true, user
 	} else if ok, user := Find(TeacherCl, email); ok {
+		fmt.Println("the user is a teacher")
 		return true, user
 	}
 	return false, map[string]interface{}{}

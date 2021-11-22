@@ -38,7 +38,8 @@ func main() {
 	r.Handle("/class/assignment/sub/{id}", middleware.Mdw.ThenFunc(class.GetSubmissionList)).Methods("GET")
     r.Handle("/class/mcq/add",middleware.Mdw.ThenFunc(class.CreateMCQ)).Methods("POST")
     r.Handle("/class/mcq/sub",middleware.Mdw.ThenFunc(class.SubmitMcq)).Methods("POST")
-
+    r.Handle("/user/update",middleware.Mdw.ThenFunc(auth.UpdateUser)).Methods("POST")
+	
 	http.Handle("/", handlers.CORS(headers, methods, origins)(r))
 	port := os.Getenv("PORT")
 	if port == "" {

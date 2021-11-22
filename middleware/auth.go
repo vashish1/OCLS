@@ -21,7 +21,7 @@ func Auth(next http.Handler) http.Handler {
 		if tokenString != "" {
 			ok, details := VerifyAuthToken(tokenString)
 			if ok {
-				//Todo add details to context
+				// add details to context
 				con := context.WithValue(r.Context(), "type", details["type"])
 				newCon := context.WithValue(con, "email", details["email"])
 				next.ServeHTTP(w, r.WithContext(newCon))

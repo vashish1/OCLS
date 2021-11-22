@@ -44,11 +44,17 @@ func LoginGoogle(w http.ResponseWriter, r *http.Request) {
 			}
 			code = http.StatusBadRequest
 		} else {
+			var d struct{
+				User map[string]interface{}
+				Token string
+			}
+			d.User=user
+			d.Token=tokenstring
 			//Send a Successfull Response
 			res = models.Response{
 				Message: "Log In successful",
 				Success: true,
-				Data:    tokenstring,
+				Data:    d,
 			}
 			code = http.StatusAccepted
 		}

@@ -102,7 +102,18 @@ Content-Length: xy
 {
     "success": true,
     "message": "Log In successful",
-    "data": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRhQGdtYWlsLmNvbSIsInR5cGUiOjF9.w1qyPVtDE2bgavD-Q3rU-BjQrVDbw2AWodMimD3JJvo"
+    "data": {
+        "User": {
+            "_id": "6199ef576240688196921bf5",
+            "classcode": [
+                "e37e5dshi"
+            ],
+            "email": "yashi.guptayashi.gupta@gmail.com",
+            "password": "b1b3773a05c0ed0176787a4f1574ff0075f7521e",
+            "type": 2
+        },
+        "Token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRheWFzaGkuZ3VwdGFAZ21haWwuY29tIiwibmFtZSI6IiIsInR5cGUiOjJ9.P_gdD2AlFu0Cu_bi2HvnYChiDmvXZcbB0vk0ScQhrds"
+    }
 }
 ```
 ## Google Login
@@ -564,7 +575,7 @@ Content-Length: xy
 **Authorization Token:** user's auth token required
 
 **Request:**
-`GET HTTP/1.1`
+`POST HTTP/1.1`
 
 ```json
 Accept: application/json
@@ -614,7 +625,7 @@ Content-Length: xy
 **Authorization Token:** user's auth token required
 
 **Request:**
-`GET HTTP/1.1`
+`POST HTTP/1.1`
 
 ```json
 Accept: application/json
@@ -638,6 +649,63 @@ Content-Length: xy
     "message": "Assignment Submitted"
 }
 ```
+
+## update user details
+
+**You send:**  the modifide data of the user for eg: to add "adm no" and "phone" we will do the following:
+
+**You get:** An `Error-Message` or a `Success-Message` with which you can make further actions along with complete updated data of user.
+
+**Endpoint:** 
+     /user/update
+
+**Authorization Token:** user's auth token required
+
+**Request:**
+`POST HTTP/1.1`
+
+```json
+Accept: application/json
+Content-Type: application/json
+Content-Length: xy
+
+{
+            "classcode": [
+                "e37e5dshi"
+            ],
+            "name":"yashi gupta",
+            "admno":"6789",
+            "phone":"2345678901",
+            "email": "yashi.guptayashi.gupta@gmail.com",
+            "password": "b1b3773a05c0ed0176787a4f1574ff0075f7521e",
+            "type": 2
+ }
+```
+
+**Successful Response:**
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: xy
+
+{
+    "success": true,
+    "message": "user updated successfully",
+    "data": {
+        "_id": "6199ef576240688196921bf5",
+        "admno": "6789",
+        "classcode": [
+            "e37e5dshi"
+        ],
+        "email": "yashi.guptayashi.gupta@gmail.com",
+        "name": "yashi gupta",
+        "password": "b1b3773a05c0ed0176787a4f1574ff0075f7521e",
+        "phone": "2345678901",
+        "type": 2
+    }
+}
+```
+
 ## Environment variables
 
   

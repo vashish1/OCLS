@@ -32,6 +32,7 @@ func Signup(w http.ResponseWriter, r *http.Request) {
 		res.Error = "User Already Registered"
 		code = http.StatusBadRequest
 		utility.SendResponse(w, res, code)
+		return
 	}
 	ok, err := db.Insertintodb(input)
 	if ok {

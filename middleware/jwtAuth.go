@@ -11,6 +11,7 @@ import (
 var Secret = []byte(os.Getenv("secretkey"))
 
 func GenerateAuthToken(email, name string, user_type int) (string, error) {
+	fmt.Println(email,"auth generation")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"type":  user_type,
 		"email": email,
@@ -19,6 +20,7 @@ func GenerateAuthToken(email, name string, user_type int) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(Secret))
 	if err == nil {
+		fmt.Println("error while generating auth token",err)
 		return tokenString, nil
 	}
 	return "", err
@@ -38,10 +40,12 @@ func VerifyAuthToken(tokenString string) (bool, map[string]interface{}) {
 		email = claims["email"].(string)
 		_ = claims["name"].(string)
 	}
-
+    fmt.Println(email)
 	ok, user := db.CheckEmail(email)
+	fmt.Println("error here")
 	if ok && user["type"].(float64) == user_type {
 		return ok, user
 	}
+	fmt.Println(ok)
 	return false, map[string]interface{}{}
 }
