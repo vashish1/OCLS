@@ -53,11 +53,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			}
 			code = http.StatusBadRequest
 		} else {
+			var d struct{
+				user map[string]interface{}
+				token string
+			}
+			d.user=user
+			d.token=tokenstring
+
 			//Send a Successfull Response
 			res = models.Response{
 				Message: "Log In successful",
 				Success: true,
-				Data:    tokenstring,
+				Data:    d,
 			}
 			code = http.StatusAccepted
 		}
