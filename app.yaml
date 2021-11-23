@@ -4,4 +4,7 @@ env: standard
 # - url: /.*
 #   script: main.go
 env_variables:
-  secretkey: okayletsrock and roll
+  secretkey: okayletsrockandroll
+  DbURL: mongodb+srv://yashi:Doraemon&1@cluster0.2pscc.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+  SMTP_KEY:
+  SMTP_PASS: 
