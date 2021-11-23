@@ -1,0 +1,7 @@
+runtime: go115
+env: standard
+# handlers:
+# - url: /.*
+#   script: main.go
+env_variables:
+  secretkey: okayletsrock and roll
