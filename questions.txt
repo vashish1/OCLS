@@ -1,0 +1,36 @@
+in case of alg alg functions kya krna hai, tlb same code hai major pr main aam alg hai jaise verification, middleware wagerah se 
+uska shi use kaise krna hai.
+
+structure of directories and code the ways functions are written preofessionally.
+
+Response structure mein puchna hai ki, Response structure shi hai ki nhi, aur agr nhi hai toh kis treeke se krna chahiye,
+ mtlb  yeh toh ek general bana diya maine, pr kya mujhe har api ke liye alg alg banana chahiye? ya kis treeke se API ke response create krne hain?
+
+
+<------option 1---->
+ func insertintostudentdb(){
+ }
+
+ func insertintoteacherdb(){
+
+ }
+
+ <-----option 2----->
+
+ func insert(collection,data){
+
+ }
+
+  func insertintostudentdb(){
+      call-> insert(studentcl,data)
+ }
+
+ func insertintoteacherdb(){
+    call-> insert(teachercl,data)
+ }
+
+ student aur user differentiate kaise krungi?
+ mtlb login ke liye aur authentication time pr.
+ 
+ announcement mein aur class structure mein name ki zarurat hai kya?
+ 

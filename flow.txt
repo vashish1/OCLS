@@ -1,0 +1,35 @@
+
+Signup --------> Login ----teacher---> Dashboard ---->create class
+                    |                      |
+                    |                      |
+                    |                      | --------------> Create Announcement (irreversible action)
+                    |                      |
+                    |                      | ----------> Create Assignment- |-----> MCQ
+                    |                                            |          |-----> PDF           
+                    |                                            |          |-----> code (optional)
+                    |                                            |
+                    |                                            |
+                    |                                            |------------->Notification to studentcl
+                    |
+                    |                      
+                    |----student --------->Dashboard -----classes-------submit assignment
+                                                 |
+                                                 |
+                                                 |
+                                                 |------view announcements
+                                                 |
+                                                 |-------view assignments
+                                                 
+
+                                                  
+                                          
+                                         
+                                         
+                                                                
+                                                                
+                                                                
+                                                                
+                                                                
+
+                                                                 
+                                          
