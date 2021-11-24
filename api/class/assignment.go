@@ -123,7 +123,7 @@ func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(id)
 	var res models.Response
 	var code int
-	err, data := database.GetSubmissions(id_value)
+	err, data,_ := database.GetSubmissions(id_value)
 	if err != nil {
 		res.Error = err.Error()
 		res.Success = false
@@ -138,6 +138,22 @@ func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func DownloadSubmission(w http.ResponseWriter,r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	id := mux.Vars(r)["id"]
+	id_value, _ := strconv.Atoi(id)
+	_, data,sheet_type := database.GetSubmissions(id_value)
+	file := utility.CreateSheet(data,sheet_type)
+
+	// Set the headers necessary to get browsers to interpret the downloadable file
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", "attachment; filename=\"submission.xlsx\"")
+	w.Header().Set("File-Name", "submission.xlsx")
+	w.Header().Set("Content-Transfer-Encoding", "binary")
+	w.Header().Set("Expires", "0")
+	err := file.Write(w)
+	fmt.Println(err)
+}
 func GetAssignment(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Class string `json:"class,omitempty"`

@@ -9,9 +9,11 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"time"
 
 	"cloud.google.com/go/storage"
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/vashish1/OCLS/models"
 )
 
@@ -59,4 +61,34 @@ func GenerateUUID() int {
 	max := 100000
 	id := rand.Intn(max-min+1) + min
 	return id
+}
+
+func CreateSheet(data []models.Submission, sheet_type int) *excelize.File {
+	f := excelize.NewFile()
+	if sheet_type == models.Type_Written {
+		f.SetCellValue("Sheet1", "A1", "File Name")
+		f.SetCellValue("Sheet1", "B1", "Name")
+		f.SetCellValue("Sheet1", "C1", "Email")
+		f.SetCellValue("Sheet1", "D1", "Timestamp")
+		f.SetCellValue("Sheet1", "E1", "Score")
+		for i := 0; i < len(data); i++ {
+			f.SetCellValue("Sheet1", "A"+strconv.Itoa(i+2), data[i].FileName)
+			f.SetCellValue("Sheet1", "B"+strconv.Itoa(i+2), data[i].Name)
+			f.SetCellValue("Sheet1", "C"+strconv.Itoa(i+2), data[i].Email)
+			f.SetCellValue("Sheet1", "D"+strconv.Itoa(i+2), data[i].Timestamp)
+			f.SetCellValue("Sheet1", "E"+strconv.Itoa(i+2), data[i].Score)
+		}
+		return f
+	}
+	f.SetCellValue("Sheet1", "A1", "Name")
+	f.SetCellValue("Sheet1", "B1", "Email")
+	f.SetCellValue("Sheet1", "C1", "Timestamp")
+	f.SetCellValue("Sheet1", "D1", "Score")
+	for i := 0; i < len(data); i++ {
+		f.SetCellValue("Sheet1", "A"+strconv.Itoa(i+2), data[i].Name)
+		f.SetCellValue("Sheet1", "B"+strconv.Itoa(i+2), data[i].Email)
+		f.SetCellValue("Sheet1", "C"+strconv.Itoa(i+2), data[i].Timestamp)
+		f.SetCellValue("Sheet1", "D"+strconv.Itoa(i+2), data[i].Score)
+	}
+	return f
 }

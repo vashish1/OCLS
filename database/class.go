@@ -165,7 +165,7 @@ func InsertSubmission(id, email, name, filename string) bool {
 	return true
 }
 
-func GetSubmissions(id int) (error, []models.Submission) {
+func GetSubmissions(id int) (error, []models.Submission,int) {
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -174,10 +174,13 @@ func GetSubmissions(id int) (error, []models.Submission) {
 	}
 	err := AssignmentCl.FindOne(ctx, filter).Decode(&data)
 	if err != nil {
-		return err, nil
+		return err, nil,-1
 	}
 	fmt.Println(data)
-	return nil, data.File.Submissions
+	if data.Type==models.Type_Written{
+		return nil, data.File.Submissions,data.Type
+	}
+	return nil,data.Form.Soln,data.Type
 }
 
 func GetStudentList(class_code string) (error, []models.List) {
