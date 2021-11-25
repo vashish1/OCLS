@@ -69,7 +69,7 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 		Name:        name,
 		Type:        models.Type_Written,
 		File: models.Written{
-			FileName: "https://storage.googleapis.com/batbuck/" + file,
+			FileName:    "https://storage.googleapis.com/batbuck/" + file,
 			Submissions: []models.Submission{},
 		},
 		Date: date,
@@ -85,7 +85,7 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 
 func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 	date, _ := time.Parse("2006-01-02T15:04", t)
-	input.Soln=[]models.Submission{}
+	input.Soln = []models.Submission{}
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Classcode:   code,
@@ -150,7 +150,7 @@ func InsertSubmission(id, email, name, filename string) bool {
 		FileName:  "https://storage.googleapis.com/batbuck/" + filename,
 	}
 	id_value, _ := strconv.Atoi(id)
-	fmt.Println(id," ", id_value)
+	fmt.Println(id, " ", id_value)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	filter := bson.D{
@@ -165,7 +165,7 @@ func InsertSubmission(id, email, name, filename string) bool {
 	return true
 }
 
-func GetSubmissions(id int) (error, []models.Submission,int) {
+func GetSubmissions(id int) (error, []models.Submission, int) {
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -174,13 +174,13 @@ func GetSubmissions(id int) (error, []models.Submission,int) {
 	}
 	err := AssignmentCl.FindOne(ctx, filter).Decode(&data)
 	if err != nil {
-		return err, nil,-1
+		return err, nil, -1
 	}
 	fmt.Println(data)
-	if data.Type==models.Type_Written{
-		return nil, data.File.Submissions,data.Type
+	if data.Type == models.Type_Written {
+		return nil, data.File.Submissions, data.Type
 	}
-	return nil,data.Form.Soln,data.Type
+	return nil, data.Form.Soln, data.Type
 }
 
 func GetStudentList(class_code string) (error, []models.List) {
@@ -285,3 +285,47 @@ func GetAllAssignment(class string) (bool, []map[string]interface{}) {
 	}
 	return true, data
 }
+
+// func FilteredList() {
+// 	var allclasses map[string]models.Class
+//     temp:=GetAll()
+// 	for _,data:=range temp{
+// 		ok,assign:=GetAllAssignment(data.Code)
+// 	}
+
+// }
+
+// func marshalClass([]map[string]interface{}) []models.Class{
+
+// }
+
+// func GetAll()[]models.Class{
+// 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+// 	defer cancel()
+// 	filter := bson.D{{}}
+// 	c := ClassCl
+// 	var result []models.Class
+// 	cur, err := c.Find(ctx, filter, options.Find())
+
+// 	if err != nil {
+
+// 		fmt.Println("the error is:", err)
+// 		return []models.Class{}
+// 	}
+// 	for cur.Next(context.TODO()) {
+// 		var elem *models.Class
+// 		err := cur.Decode(&elem)
+// 		if err != nil {
+// 			return  []models.Class{}
+// 		}
+// 		fmt.Println(elem)
+// 		result = append(result, *elem)
+// 	}
+// 	if err := cur.Err(); err != nil {
+
+// 		fmt.Println("cursor error", err)
+// 		return []models.Class{}
+// 	}
+// 	cur.Close(context.TODO())
+// 	return  result
+// }

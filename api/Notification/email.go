@@ -51,3 +51,13 @@ func SendEmail(class_code, date string) bool {
 	}
 	return true
 }
+
+
+func SendRemainder(){
+	//fetch all classes
+	
+	//fetch all assignments
+	//seperate the students who have not submitted the assignment
+    
+
+}

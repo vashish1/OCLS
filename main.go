@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"gopkg.in/robfig/cron.v2"
 
 	// "github.com/vashish1/OCLS/api/Notification"
 
@@ -15,12 +16,19 @@ import (
 	"github.com/vashish1/OCLS/middleware"
 )
 
+func SendMail() {
+	
+}
+
 func main() {
 	fmt.Println("ok running")
+	c := cron.New()
+	c.AddFunc("@every 2d", SendMail)
+	c.Start()
 	r := mux.NewRouter()
 	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "PUT", "DELETE"})
-	origins := handlers.AllowedOrigins([]string{"*"})
+	origins := handlers.AllowedOrigins([]string{"*","Access-Control-Allow-Origin"})
 	r.HandleFunc("/login", auth.Login).Methods("POST")
 	r.HandleFunc("/signup", auth.Signup).Methods("POST")
 	r.HandleFunc("/signup/google", auth.GoogleSignupHandler).Methods("POST")
@@ -36,11 +44,11 @@ func main() {
 	r.Handle("/class/assignment/get", middleware.Mdw.ThenFunc(class.GetAssignment)).Methods("GET")
 	r.Handle("/class/assignment/sub", middleware.Mdw.ThenFunc(class.SubmitAssignment)).Methods("POST")
 	r.Handle("/class/assignment/sub/{id}", middleware.Mdw.ThenFunc(class.GetSubmissionList)).Methods("GET")
-	r.Handle("/submission/{id}",middleware.Mdw.ThenFunc(class.DownloadSubmission)).Methods("GET")
-    r.Handle("/class/mcq/add",middleware.Mdw.ThenFunc(class.CreateMCQ)).Methods("POST")
-    r.Handle("/class/mcq/sub",middleware.Mdw.ThenFunc(class.SubmitMcq)).Methods("POST")
-    r.Handle("/user/update",middleware.Mdw.ThenFunc(auth.UpdateUser)).Methods("POST")
-	
+	r.Handle("/submission/{id}", middleware.Mdw.ThenFunc(class.DownloadSubmission)).Methods("GET")
+	r.Handle("/class/mcq/add", middleware.Mdw.ThenFunc(class.CreateMCQ)).Methods("POST")
+	r.Handle("/class/mcq/sub", middleware.Mdw.ThenFunc(class.SubmitMcq)).Methods("POST")
+	r.Handle("/user/update", middleware.Mdw.ThenFunc(auth.UpdateUser)).Methods("POST")
+
 	http.Handle("/", handlers.CORS(headers, methods, origins)(r))
 	port := os.Getenv("PORT")
 	if port == "" {
