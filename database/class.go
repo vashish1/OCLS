@@ -105,7 +105,7 @@ func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 }
 
 func InsertMcqSubmission(id int, ans []string, email, name string) bool {
-	date := time.Now().Format("2006-01-02 T 15:04")
+	date := time.Now().Format("2006-01-02 15:04:05")
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -142,7 +142,7 @@ func InsertMcqSubmission(id int, ans []string, email, name string) bool {
 }
 func InsertSubmission(id, email, name, filename string) bool {
 
-	date := time.Now().Format("2006-01-02 T 15:04")
+	date := time.Now().Format("2006-01-02 15:04:05")
 	var sub = models.Submission{
 		Email:     email,
 		Name:      name,

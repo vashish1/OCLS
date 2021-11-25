@@ -15,7 +15,7 @@ import (
 func init() {
 	fmt.Println("cron job working")
 	c := cron.New()
-	c.AddFunc("@every 48h", FilteredList)
+	c.AddFunc("@every 1m", FilteredList)
 	c.Start()
 }
 
@@ -152,14 +152,14 @@ func SendRemainder(values models.Assignment, user models.List) {
 				},
 			},
 			Subject:  "Assignment Due",
-			TextPart: "Dear student\n" + "You have an assignment due, complete it before the date :" + date,
+			TextPart: "Dear" +user.Name+ " You have an assignment due, complete it before the date :" + values.Date.Format("2006-01-02 15:04:05"),
 		},
 	}
 	messages := mailjet.MessagesV31{Info: messagesInfo}
 	_, err := client.SendMailV31(&messages)
 	if err != nil {
 		fmt.Println("error while sending mail", err)
-		return false
+		return 
 	}
 	//fetch all classes
     fmt.Println("email sent to",user.Name,user.Email)
