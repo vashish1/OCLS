@@ -31,7 +31,7 @@ func Find(c *mongo.Collection, email string) (bool, map[string]interface{}) {
 	if err != nil {
 		return false, map[string]interface{}{}
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 	return true, data
 }
 

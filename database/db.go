@@ -128,7 +128,7 @@ func FindAll(c *mongo.Collection, filter interface{}) (error, []map[string]inter
 		if err != nil {
 			return err, []map[string]interface{}{}
 		}
-		fmt.Println(elem)
+		// fmt.Println(elem)
 		result = append(result, *elem)
 	}
 	if err := cur.Err(); err != nil {

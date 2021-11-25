@@ -176,7 +176,7 @@ func GetSubmissions(id int) (error, []models.Submission, int) {
 	if err != nil {
 		return err, nil, -1
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 	if data.Type == models.Type_Written {
 		return nil, data.File.Submissions, data.Type
 	}
@@ -194,7 +194,7 @@ func GetStudentList(class_code string) (error, []models.List) {
 	if err != nil {
 		return err, nil
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 	return nil, data.StudentList
 }
 
@@ -226,7 +226,7 @@ func GetAllClass(email string, user_type int) (bool, []models.Class) {
 			fmt.Println(err)
 			return false, []models.Class{}
 		}
-		fmt.Println(data)
+		// fmt.Println(data)
 		codes = data.Class
 	} else {
 		var data models.Student
@@ -240,7 +240,7 @@ func GetAllClass(email string, user_type int) (bool, []models.Class) {
 			fmt.Println(err)
 			return false, []models.Class{}
 		}
-		fmt.Println(data)
+		// fmt.Println(data)
 		codes = data.ClassCode
 	}
 	fmt.Println(codes)
@@ -254,7 +254,7 @@ func GetAllClass(email string, user_type int) (bool, []models.Class) {
 			{"code", c},
 		}
 		err := ClassCl.FindOne(ctx, filter).Decode(&data)
-		fmt.Println(data)
+		// fmt.Println(data)
 		if err != nil {
 			fmt.Println(err)
 		} else {
@@ -286,46 +286,3 @@ func GetAllAssignment(class string) (bool, []map[string]interface{}) {
 	return true, data
 }
 
-// func FilteredList() {
-// 	var allclasses map[string]models.Class
-//     temp:=GetAll()
-// 	for _,data:=range temp{
-// 		ok,assign:=GetAllAssignment(data.Code)
-// 	}
-
-// }
-
-// func marshalClass([]map[string]interface{}) []models.Class{
-
-// }
-
-// func GetAll()[]models.Class{
-// 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
-// 	defer cancel()
-// 	filter := bson.D{{}}
-// 	c := ClassCl
-// 	var result []models.Class
-// 	cur, err := c.Find(ctx, filter, options.Find())
-
-// 	if err != nil {
-
-// 		fmt.Println("the error is:", err)
-// 		return []models.Class{}
-// 	}
-// 	for cur.Next(context.TODO()) {
-// 		var elem *models.Class
-// 		err := cur.Decode(&elem)
-// 		if err != nil {
-// 			return  []models.Class{}
-// 		}
-// 		fmt.Println(elem)
-// 		result = append(result, *elem)
-// 	}
-// 	if err := cur.Err(); err != nil {
-
-// 		fmt.Println("cursor error", err)
-// 		return []models.Class{}
-// 	}
-// 	cur.Close(context.TODO())
-// 	return  result
-// }

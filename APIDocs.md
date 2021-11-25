@@ -18,8 +18,8 @@ and then we will ask the user type Student or teacher on that we will call the s
 /callback Response 
 Output-`{ "Name":"Yashi Gupta","Email":"vashishtiv@gmail.com" }`
 
-add the type-> Student- 1
-            -> Teacher- 2
+add the type-> Teacher- 1 
+            -> Student- 2
 
 Call the signup api
 

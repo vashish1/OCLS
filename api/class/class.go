@@ -38,6 +38,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 	}
 	input.TeacherEmail = email
 	input.TeacherName = name
+	input.StudentList=[]models.List{}
 	ok, class_code := database.InsertClass(input, email)
 	fmt.Println(ok, class_code)
 	if ok {

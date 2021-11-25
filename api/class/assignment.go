@@ -1,4 +1,3 @@
-
 package class
 
 import (
@@ -123,7 +122,7 @@ func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(id)
 	var res models.Response
 	var code int
-	err, data,_ := database.GetSubmissions(id_value)
+	err, data, _ := database.GetSubmissions(id_value)
 	if err != nil {
 		res.Error = err.Error()
 		res.Success = false
@@ -138,12 +137,12 @@ func GetSubmissionList(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func DownloadSubmission(w http.ResponseWriter,r *http.Request){
+func DownloadSubmission(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := mux.Vars(r)["id"]
 	id_value, _ := strconv.Atoi(id)
-	_, data,sheet_type := database.GetSubmissions(id_value)
-	file := utility.CreateSheet(data,sheet_type)
+	_, data, sheet_type := database.GetSubmissions(id_value)
+	file := utility.CreateSheet(data, sheet_type)
 
 	// Set the headers necessary to get browsers to interpret the downloadable file
 	w.Header().Set("Content-Type", "application/octet-stream")

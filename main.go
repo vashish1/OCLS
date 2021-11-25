@@ -7,28 +7,18 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"gopkg.in/robfig/cron.v2"
-
-	// "github.com/vashish1/OCLS/api/Notification"
-
 	"github.com/vashish1/OCLS/api/auth"
 	"github.com/vashish1/OCLS/api/class"
 	"github.com/vashish1/OCLS/middleware"
 )
 
-func SendMail() {
-	
-}
-
 func main() {
 	fmt.Println("ok running")
-	c := cron.New()
-	c.AddFunc("@every 2d", SendMail)
-	c.Start()
+
 	r := mux.NewRouter()
 	headers := handlers.AllowedHeaders([]string{"Accept", "Content-Type", "Content-Length", "Accept-Encoding", "X-CSRF-Token", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "PUT", "DELETE"})
-	origins := handlers.AllowedOrigins([]string{"*","Access-Control-Allow-Origin"})
+	origins := handlers.AllowedOrigins([]string{"*", "Access-Control-Allow-Origin"})
 	r.HandleFunc("/login", auth.Login).Methods("POST")
 	r.HandleFunc("/signup", auth.Signup).Methods("POST")
 	r.HandleFunc("/signup/google", auth.GoogleSignupHandler).Methods("POST")
