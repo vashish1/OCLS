@@ -38,7 +38,7 @@ func UpdataClassData(code, email, name string) bool {
 	filter := bson.D{
 		{"code", code},
 	}
-	update := bson.M{"$push": bson.M{"student_list": input}}
+	update := bson.M{"$push": bson.M{"studentlist": input}}
 	updateResult, err := ClassCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
@@ -50,7 +50,7 @@ func UpdataClassData(code, email, name string) bool {
 	filter = bson.D{
 		{"email", email},
 	}
-	update = bson.M{"$push": bson.M{"class_code": code}}
+	update = bson.M{"$push": bson.M{"classcode": code}}
 	updateResult, err = StudentCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)

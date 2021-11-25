@@ -24,7 +24,8 @@ func Auth(next http.Handler) http.Handler {
 				// add details to context
 				con := context.WithValue(r.Context(), "type", details["type"])
 				newCon := context.WithValue(con, "email", details["email"])
-				next.ServeHTTP(w, r.WithContext(newCon))
+				finalCon := context.WithValue(newCon,"name",details["name"])
+				next.ServeHTTP(w, r.WithContext(finalCon))
 				return
 			}
 			res = models.Response{

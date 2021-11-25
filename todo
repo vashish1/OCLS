@@ -19,8 +19,6 @@ meeting link wali api
  point to remember in frontend, form ans submission ke time jis bhi question
 ko khali chodeinge us ques mein ans "" nil jaega
 
-change the functionality of cors by a library that works
-
 check jjoin class
 
-gcp ka invalid client check krna hai
+google login ko check krna hai shi chlrha ki nhi

@@ -15,7 +15,7 @@ import (
 func init() {
 	fmt.Println("cron job working")
 	c := cron.New()
-	c.AddFunc("@every 1m", FilteredList)
+	c.AddFunc("@every 48h", FilteredList)
 	c.Start()
 }
 
