@@ -21,7 +21,7 @@ func main() {
 	origins := handlers.AllowedOrigins([]string{"*", "Access-Control-Allow-Origin"})
 	r.HandleFunc("/login", auth.Login).Methods("POST")
 	r.HandleFunc("/signup", auth.Signup).Methods("POST")
-	r.HandleFunc("/signup/google", auth.GoogleSignupHandler).Methods("POST")
+	r.HandleFunc("/signup/google", auth.GoogleSignupHandler)
 	r.HandleFunc("/login/google", auth.LoginGoogle).Methods("POST")
 	r.HandleFunc("/callback", auth.GoogleCallbackHandler)
 	r.Handle("/class", middleware.Mdw.ThenFunc(class.CreateClass)).Methods("POST")
