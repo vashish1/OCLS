@@ -58,6 +58,7 @@ func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 		Data: url,
 	}
 	utility.SendResponse(w,res,http.StatusTemporaryRedirect)
+	return
 }
 
 //GoogleCallbackHandler func
