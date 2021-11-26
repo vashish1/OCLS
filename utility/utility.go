@@ -16,6 +16,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/vashish1/OCLS/models"
+	"google.golang.org/api/option"
 )
 
 func SendResponse(w http.ResponseWriter, data models.Response, code int) {
@@ -36,7 +37,7 @@ func UploadFile(object string, file multipart.File) error {
 
 	bucket := "batbuck"
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx)
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile("creds2.json"))
 	if err != nil {
 		fmt.Println("3", err)
 		return err
