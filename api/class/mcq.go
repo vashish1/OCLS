@@ -63,6 +63,7 @@ func get(r *http.Request) (string, string, models.Response, int) {
 	}
 	var res models.Response
 	var code int
+	fmt.Println("here",email,name)
 	return email, user_name, res, code
 }
 

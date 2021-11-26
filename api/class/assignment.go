@@ -17,6 +17,7 @@ import (
 // Content-Type: application/pdf
 func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 	email, name, res, code := get(r)
+	fmt.Println(name)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
 	if err != nil {
 		res.Error = err.Error()
@@ -43,6 +44,8 @@ func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 			Success: false,
 		}
 		code = http.StatusInternalServerError
+		utility.SendResponse(w, res, code)
+		return
 	}
 
 	ok := database.InsertAssignment(desc, t, h.Filename, class_code, email, name)
