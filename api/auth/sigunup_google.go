@@ -57,7 +57,7 @@ func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 	res:=models.Response{
 		Data: url,
 	}
-	utility.SendResponse(w,res,http.StatusTemporaryRedirect)
+	utility.SendResponse(w,res,200)
 	return
 }
 
