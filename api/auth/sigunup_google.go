@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/vashish1/OCLS/models"
+	"github.com/vashish1/OCLS/utility"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -52,7 +54,10 @@ func init() {
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 	url := googleOauthConfig.AuthCodeURL(randomState)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	res:=models.Response{
+		Data: url,
+	}
+	utility.SendResponse(w,res,http.StatusTemporaryRedirect)
 }
 
 //GoogleCallbackHandler func
