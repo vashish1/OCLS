@@ -29,7 +29,7 @@ var (
 
 func init() {
 
-	f, err := ioutil.ReadFile("./api/auth/creds2.json")
+	f, err := ioutil.ReadFile("./api/auth/creds.json")
 	if err != nil {
 		fmt.Println("could not read the file:", err)
 	}
@@ -43,8 +43,8 @@ func init() {
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/calendar",
-			"https://www.googleapis.com/auth/calendar.events",
+			// "https://www.googleapis.com/auth/calendar",
+			// "https://www.googleapis.com/auth/calendar.events",
 		},
 		Endpoint: google.Endpoint,
 	}

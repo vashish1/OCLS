@@ -1,3 +1,97 @@
+# OCLS
+
+    Ocls is an online assignment submission portal built for schools.
+
+    The project is live [here]()
+
+    Video demo:
+
+<a href="" title="OCLS Demo"><img src="{image-url}" alt="Alternate Text" /></a>
+
+### The Idea 
+    During the tough time of COVID-19 the childrens were affected very much in terms of academics, they had no option other than online studies.
+
+    But online studies were very dicrete, they recieved assignments on one platform and they had to submit it on the other, Even sometimes they missed there assignments.
+    
+    Though forms were a great way to take tests, there was a problem that was, they were not in an integrated system which sometimes caused chaos.
+
+    Considering such needs this project is conceptualized.
+
+### Fetures
+
+     -> Google oauth login possible.
+     -> Seperate Dashboard for Student and Teacher.
+     -> Techer can create classes.
+     -> Two types of assignment can be created by the teacher : File based , Multiple Choice Question
+     -> Email notification sent to all the students, of the particular class whenever any assignment is created.
+     -> Remainder email to students.
+     -> Auto grading for MCQ assignment.
+     -> Teacher can download, the excel sheet of submissions of any assignment.
+     -> Students can join any class.
+     -> Students can attempt the assignment within the portal.
+
+### Future Amendments/scope
+
+     -> Improve UI/UX of the portal.
+     -> Video calling for classes.
+     -> Lock the browser while submitting mcq assignment to prevent cheating.
+     -> Add Coding assignment section.
+     -> In window editor for submitting assignment.
+     -> Use ML/AI to detect piracy in assignments.
+     -> Navigation link directly from mail to dashboard
+
+# SetUp Project:
+
+### Download [Go](https://go.dev/)
+
+### Clone the project
+### Crete 'creds.json' file and add it into the api/auth folder.
+  
+  This file is required for Oauth signin using google.
+
+ `Attention`: In case you don't want to use this feature, comment the code in the file name- signup_google.go 
+
+#### Steps to create creds.json file:
+
+   1. Setup Oauth Consent Screen ->  [Docs](https://support.google.com/cloud/answer/10311615?hl=en&ref_topic=3473162)
+
+   2. Create Oauth Client ID -> [Docs](https://support.google.com/cloud/answer/6158849?hl=en&ref_topic=3473162)
+
+   3. Download the `Json` file and rename it as `creds.json`.
+
+   4. modify the creds file in the following format.
+
+    ```json
+    {
+        "client_id":"",
+        "project_id":"",
+        "auth_uri":"",
+        "token_uri":"",
+        "auth_provider_x509_cert_url":"",
+        "client_secret":"",
+        "redirect_uris":[],
+        "javascript_origins":[]
+    }
+    ``` 
+### Setup the Environment variables :
+
+  `DbUrl` : to store the url of mongodb cluster or localhost.
+
+  `secretkey` : to store encryption secret.
+
+  `PORT`     : port on localhost to run application
+
+  `SMTP_KEY` : to store the key of smtp server.
+
+  `SMTP_PASS` : to store the pass of the smtp server.
+
+### Run the Project using commands :
+    
+    go run main.go 
+    or
+    go build && ./ocls (parent folder name)
+    
+
 # API Documentation
 
  All responses come in standard JSON. All requests must include a `content-type` of `application/json` and the body must be valid JSON.
@@ -30,6 +124,9 @@
   }
 ```
 
+type-> Student- 1
+    -> Teacher- 2
+
 ## SignUp
 
 **You send:**  You send the details required to signup.
@@ -50,8 +147,8 @@ Content-Type: application/json
 Content-Length: xy
 
 {   
-    "email":"yashi.gupta@gmail.com",
-    "password":"qwerty",
+    "email":"",
+    "password":"",
     "type":1
     
 }
@@ -88,8 +185,8 @@ Content-Type: application/json
 Content-Length: xy
 
 {
-    "email":"yashi.gupta@gmail.com",
-    "password":"qwerty"
+    "email":"",
+    "password":""
 }
 ```
 
@@ -104,15 +201,15 @@ Content-Length: xy
     "message": "Log In successful",
     "data": {
         "User": {
-            "_id": "6199ef576240688196921bf5",
+            "_id": "6199--------------5",
             "classcode": [
-                "e37e5dshi"
+                "8eiuhbdfh"
             ],
-            "email": "yashi.guptayashi.gupta@gmail.com",
-            "password": "b1b3773a05c0ed0176787a4f1574ff0075f7521e",
+            "email": "",
+            "password": "dfcvdchhgdbncj",
             "type": 2
         },
-        "Token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRheWFzaGkuZ3VwdGFAZ21haWwuY29tIiwibmFtZSI6IiIsInR5cGUiOjJ9.P_gdD2AlFu0Cu_bi2HvnYChiDmvXZcbB0vk0ScQhrds"
+        "Token": "eyJhbGciOiJIUzI1NiIsInRCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRheWFzaGkuZ3VwdI6IiIsInR5cGUiOjJ9.P_gdD2AlFu0Cu_bi2HvnYCbB0vk0ScQhrds"
     }
 }
 ```
@@ -125,10 +222,10 @@ Content-Length: xy
 **Endpoint:** 
 First use /signup/google to get the response
 
-Output-`{ "Name":"Yashi Gupta","Email":"vashishtiv@gmail.com" }`
-
-type-> Student- 1
-    -> Teacher- 2
+Output-`{
+     "Name":"",
+     "Email":"jkmklkol@gmail.com"
+}`
 
 then send this respose with the type to /login/google
 
@@ -142,8 +239,8 @@ Content-Type: application/json
 Content-Length: xy
 
 {
-     "name":"Yashi Gupta",
-     "email":"vashishtiv@gmail.com",
+     "name":"",
+     "email":"",
      "type":1
 }
 ```
@@ -158,7 +255,18 @@ Content-Length: xy
 {
     "success": true,
     "message": "Log In successful",
-    "data": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRhQGdtYWlsLmNvbSIsInR5cGUiOjF9.w1qyPVtDE2bgavD-Q3rU-BjQrVDbw2AWodMimD3JJvo"
+    "data":  {
+        "User": {
+            "_id": "6199--------------5",
+            "classcode": [
+                "8eiuhbdfh"
+            ],
+            "email": "",
+            "password": "dfcvdchhgdbncj",
+            "type": 2
+        },
+        "Token": "eyJhbGciOiJIUzI1NiIsInRCJ9.eyJlbWFpbCI6Inlhc2hpLmd1cHRheWFzaGkuZ3VwdI6IiIsInR5cGUiOjJ9.P_gdD2AlFu0Cu_bi2HvnYCbB0vk0ScQhrds"
+    }
 }
 ```
 
@@ -169,7 +277,7 @@ Content-Length: xy
 **You get:** An `Error-Message` or a `Success mesage`
 
 **Endpoint:** 
-     /signup/google -> /signup
+     /signup/google --> /signup
 
 **Authorization Token:** No Token required
 
@@ -182,8 +290,8 @@ Content-Type: application/json
 Content-Length: xy
 
 {   
-    "name":"Yashi Gupta",
-    "email":"vashishtiv@gmail.com",
+    "name":"",
+    "email":"",
     "type":1
 }
 ```
@@ -283,6 +391,8 @@ Content-Length: xy
 
 **Authorization Token:** user's auth token required
 
+**Request:**
+`GET HTTP/1.1`
 
 **Successful Response:**
 ```json
@@ -319,8 +429,8 @@ Content-Type: application/json
 Content-Length: xy
 
 {
-    "teacher_name":"yashi",
-    "class_code":"e37e5dshi",
+    "teacher_name":"",
+    "class_code":"",
     "description":"uihnkiuygvbxjh",
     "timestamp":"12-Nov-21"
 }
@@ -350,7 +460,7 @@ Content-Length: xy
 **Authorization Token:** user's auth token required
 
 **Request:**
-`GET HTTP/1.1`
+`POST HTTP/1.1`
 
 ```json
 Accept: application/json
@@ -381,7 +491,7 @@ Content-Length: xy
             "timestamp": "12-Nov-21"
         },
         {
-            "_id": "619a1bbdbeea287a6a8e623b",
+            "_id": "619a1bbdbee6a8e623b",
             "classcode": "e37e5dshi",
             "description": "uihnkiuygvbxjh",
             "id": 28033,
@@ -406,13 +516,13 @@ Content-Length: xy
 
 Form Fields
 
-`"description"`
+`"description"-> Text`
 
-`"date"`
+`"date" -> Text`
 
-`"class_code"`
+`"class_code" -> Text`
 
-`"file"`
+`"file" -> file`
 
 **Successful Response:**
 ```json
@@ -537,7 +647,7 @@ Content-Length: xy
 **You get:** An `Error-Message` or a `Success-Message` with which you can make further actions.
 
 **Endpoint:** 
-     /class/assignment/sub/{code}
+     /class/assignment/sub/{id}
 
 **Authorization Token:** user's auth token required
 
@@ -557,7 +667,7 @@ Content-Length: xy
         {
             "filename": "https://storage.googleapis.com/batbuck/okay.txt.txt",
             "email": "vashishtiv@gmail.com",
-            "timestamp": "2021-11-21 T 19:14"
+            "timestamp": "2021-11-21 19:14"
         }
     ]
 }
@@ -587,14 +697,14 @@ Content-Length: xy
         "ques":[
             {
                 "question":"usdhgbnchjv",
-                "options":["a","b","c"]
+                "options":["iuythgbn","b hn","bgvhjn"]
             },
             {
                 "question":"usdhgbnchjv",
-                "options":["a","b","c"]
+                "options":["true","false"]
             }
         ],
-        "answers":["a","c"]
+        "answers":["iuythgbn","false"]
     },
     "code":"e37e5dshi",
     "description":"kjuyhtgfvbnj",
@@ -673,11 +783,11 @@ Content-Length: xy
             "classcode": [
                 "e37e5dshi"
             ],
-            "name":"yashi gupta",
+            "name":"",
             "admno":"6789",
             "phone":"2345678901",
-            "email": "yashi.guptayashi.gupta@gmail.com",
-            "password": "b1b3773a05c0ed0176787a4f1574ff0075f7521e",
+            "email": "",
+            "password": "b1b3773a05c0ed01767",
             "type": 2
  }
 ```
@@ -697,9 +807,9 @@ Content-Length: xy
         "classcode": [
             "e37e5dshi"
         ],
-        "email": "yashi.guptayashi.gupta@gmail.com",
-        "name": "yashi gupta",
-        "password": "b1b3773a05c0ed0176787a4f1574ff0075f7521e",
+        "email": "",
+        "name": "",
+        "password": "b1b377374ff0075f7521e",
         "phone": "2345678901",
         "type": 2
     }
@@ -726,12 +836,4 @@ Content-Length: xy
 ## Environment variables
 
   
-  `DbUrl` : to store the url of mongodb cluster or localhost.
 
-  `secretkey` : to store encryption secret.
-
-  `PORT`     : port on localhost to run application
-
- `SMTP_KEY` : to store the key of smtp server.
-
- `SMTP_PASS` : to store the pass of the smtp server.

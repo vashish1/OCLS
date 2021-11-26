@@ -29,7 +29,7 @@ func main() {
 	r.Handle("/class/join", middleware.Mdw.ThenFunc(class.JoinClass)).Methods("POST")
 	r.Handle("/class/get", middleware.Mdw.ThenFunc(class.GetClass)).Methods("GET")
 	r.Handle("/class/announcement/add", middleware.Mdw.ThenFunc(class.CreateAnnouncement)).Methods("POST")
-	r.Handle("/class/announcement/get", middleware.Mdw.ThenFunc(class.GetAnnouncement)).Methods("GET")
+	r.Handle("/class/announcement/get", middleware.Mdw.ThenFunc(class.GetAnnouncement)).Methods("POST")
 	r.Handle("/class/assignment/add", middleware.Mdw.ThenFunc(class.CreateAssignment)).Methods("POST")
 	r.Handle("/class/assignment/get", middleware.Mdw.ThenFunc(class.GetAssignment)).Methods("POST")
 	r.Handle("/class/assignment/sub", middleware.Mdw.ThenFunc(class.SubmitAssignment)).Methods("POST")
