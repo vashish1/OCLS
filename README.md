@@ -430,7 +430,7 @@ Content-Length: xy
 
 {
     "teacher_name":"",
-    "class_code":"",
+    "classcode":"",
     "description":"uihnkiuygvbxjh",
     "timestamp":"12-Nov-21"
 }
