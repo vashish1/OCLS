@@ -437,7 +437,7 @@ Content-Length: xy
 **Authorization Token:** user's auth token required
 
 **Request:**
-`GET HTTP/1.1`
+`POST HTTP/1.1`
 
 ```json
 Accept: application/json
@@ -705,6 +705,23 @@ Content-Length: xy
     }
 }
 ```
+
+## Download submission list
+
+**You send:**  id of the assignment
+
+**You get:** An `Error-Message` or a `Success-Message` with which you can make further actions along with complete updated data of user.
+
+**Endpoint:** 
+     /submission/{id}
+
+**Authorization Token:** user's auth token required
+
+**Request:**
+`GET HTTP/1.1`
+
+**Successful Response:**
+ The excel file will be downloaded in the broweser.
 
 ## Environment variables
 
