@@ -37,7 +37,7 @@ func UploadFile(object string, file multipart.File) error {
 
 	bucket := "batbuck"
 	ctx := context.Background()
-	client, err := storage.NewClient(ctx, option.WithCredentialsFile("creds2.json"))
+	client, err := storage.NewClient(ctx, option.WithCredentialsFile("./utility/creds2.json"))
 	if err != nil {
 		fmt.Println("3", err)
 		return err
