@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/rand"
 	"mime/multipart"
@@ -37,6 +38,7 @@ func UploadFile(object string, file multipart.File) error {
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
+		fmt.Println("3", err)
 		return err
 	}
 	defer client.Close()
@@ -47,9 +49,11 @@ func UploadFile(object string, file multipart.File) error {
 	// Upload an object with storage.Writer.
 	wc := client.Bucket(bucket).Object(object).NewWriter(ctx)
 	if _, err = io.Copy(wc, file); err != nil {
+		fmt.Println("1", err)
 		return err
 	}
 	if err := wc.Close(); err != nil {
+		fmt.Println("2", err)
 		return err
 	}
 	return nil
