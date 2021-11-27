@@ -32,6 +32,7 @@ func main() {
 	r.Handle("/class/announcement/get", middleware.Mdw.ThenFunc(class.GetAnnouncement)).Methods("POST")
 	r.Handle("/class/assignment/add", middleware.Mdw.ThenFunc(class.CreateAssignment)).Methods("POST")
 	r.Handle("/class/assignment/get", middleware.Mdw.ThenFunc(class.GetAssignment)).Methods("POST")
+	r.Handle("/class/assignment/stu-get", middleware.Mdw.ThenFunc(class.GetAssignmentStudent)).Methods("POST")
 	r.Handle("/class/assignment/sub", middleware.Mdw.ThenFunc(class.SubmitAssignment)).Methods("POST")
 	r.Handle("/class/assignment/sub/{id}", middleware.Mdw.ThenFunc(class.GetSubmissionList)).Methods("GET")
 	r.HandleFunc("/submission/{id}", class.DownloadSubmission).Methods("GET")

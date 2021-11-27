@@ -535,7 +535,7 @@ Content-Length: xy
     "message": "Assignment Added"
 }
 ```
-## Get Assignment
+## Get Assignment for Teacher dashboard
 
 **You send:**  The code of the class to fetch the respective assignments.
 
@@ -575,7 +575,7 @@ Content-Length: xy
             "date": "0001-01-01T05:30:00+05:30",
             "description": "dfcdsfgvbdxhcju",
             "file": {
-                "filename": "https://storage.googleapis.com/batbuck/Registration Successful - Registration of Migrants and Others for Travelling to Uttarakhand.pdf",
+                "filename": "",
                 "submissions": null
             },
             "form": {
@@ -593,7 +593,81 @@ Content-Length: xy
             "date": "0001-01-01T05:30:00+05:30",
             "description": "grftesdxfcgvh",
             "file": {
-                "filename": "https://storage.googleapis.com/batbuck/Registration Successful - Registration of Migrants and Others for Travelling to Uttarakhand.pdf",
+                "filename": "",
+                "submissions": null
+            },
+            "form": {
+                "answers": null,
+                "ques": null,
+                "soln": null
+            },
+            "id": 35749,
+            "name": "",
+            "type": 0
+        }
+    ]
+}
+```
+
+## Get Assignment for Teacher dashboard
+
+**You send:**  The code of the class to fetch the respective assignments.
+
+**You get:** An `Error-Message` or a `Success-Message` with which you can make further actions.
+
+**Endpoint:** 
+     /class/assignment/stu-get
+
+**Authorization Token:** user's auth token required
+
+**Request:**
+`POST HTTP/1.1`
+
+```json
+Accept: application/json
+Content-Type: application/json
+Content-Length: xy
+
+{
+    "class":"e37e5dshi"
+}
+```
+
+**Successful Response:**
+```json
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: xy
+
+{
+    "success": true,
+    "message": "class data fetch successful",
+    "data": [
+        {
+            "_id": "619a3f274d41e6558ee29b29",
+            "classcode": "e37e5dshi",
+            "date": "0001-01-01T05:30:00+05:30",
+            "description": "dfcdsfgvbdxhcju",
+            "file": {
+                "filename": "",
+                "submissions": null
+            },
+            "form": {
+                "answers": null,
+                "ques": null,
+                "soln": null
+            },
+            "id": 65448,
+            "name": "",
+            "type": 0
+        },
+        {
+            "_id": "619a44fb4d41e6558ee29b2a",
+            "classcode": "e37e5dshi",
+            "date": "0001-01-01T05:30:00+05:30",
+            "description": "grftesdxfcgvh",
+            "file": {
+                "filename": "",
                 "submissions": null
             },
             "form": {

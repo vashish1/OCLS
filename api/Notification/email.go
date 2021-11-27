@@ -33,7 +33,9 @@ var from = &mailjet.RecipientV31{
 var client = mailjet.NewMailjetClient(key, pass)
 
 //SendWelcomeEmail func
-func SendEmail(class_code, date string) bool {
+func SendEmail(class_code, date string) bool{
+	t, _ := time.Parse("2006-01-02T15:04", date)
+	f:=t.Format("2017-09-07 Wed")
 	err, list := database.GetStudentList(class_code)
 	if err != nil {
 		fmt.Println(err)
@@ -50,7 +52,7 @@ func SendEmail(class_code, date string) bool {
 					},
 				},
 				Subject:  "New Assignment added in " + " ",
-				TextPart: "Dear" + mail.Name + "You have an assignment due, complete it before the date :" + date,
+				TextPart: "Dear" + mail.Name + "You have an assignment due, complete it before the date :" +  f,
 			},
 		}
 		messages := mailjet.MessagesV31{Info: messagesInfo}
@@ -155,7 +157,7 @@ func SendRemainder(values models.Assignment, user models.List) {
 				},
 			},
 			Subject:  "Assignment Due",
-			TextPart: "Dear" + user.Name + " You have an assignment due, complete it before the date :" + values.Date.Format(""),
+			TextPart: "Dear" + user.Name + " You have an assignment due, complete it before the date :" + values.Date.Format("2017-09-07 Wed"),
 		},
 	}
 	messages := mailjet.MessagesV31{Info: messagesInfo}
