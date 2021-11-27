@@ -56,6 +56,7 @@ func init() {
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 	// url := googleOauthConfig.AuthCodeURL(randomState)
+    utility.EnableCors(&w)
 	URL, err := url.Parse(googleOauthConfig.Endpoint.AuthURL)
 	if err != nil {
 		fmt.Println("Parse: " + err.Error())
@@ -73,6 +74,7 @@ func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 
 //GoogleCallbackHandler func
 func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	fmt.Print("callback recieved")
 	// var res utility.Result
 
@@ -123,6 +125,7 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func Welcome(w http.ResponseWriter,r *http.Request){
+	utility.EnableCors(&w)
          q:=r.URL.Query()
 		 var output struct {
 			Name  string

@@ -73,6 +73,14 @@
         "javascript_origins":[]
     }
     ``` 
+
+#### Steps to create Creds2.json file (required to upload file in bucket)
+
+   1. Use [this](https://cloud.google.com/docs/authentication/production) to authenticate the service account.
+
+   2. Download the file.
+
+   3. Place it into the utility folder.
 ### Setup the Environment variables :
 
   `DbUrl` : to store the url of mongodb cluster or localhost.
@@ -609,7 +617,7 @@ Content-Length: xy
 }
 ```
 
-## Get Assignment for Teacher dashboard
+## Get Assignment for Student dashboard
 
 **You send:**  The code of the class to fetch the respective assignments.
 
@@ -907,7 +915,10 @@ Content-Length: xy
 **Successful Response:**
  The excel file will be downloaded in the broweser.
 
-## Environment variables
+
+# Frontend
+
+
 
   
 
