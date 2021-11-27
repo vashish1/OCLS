@@ -97,3 +97,7 @@ func CreateSheet(data []models.Submission, sheet_type int) *excelize.File {
 	}
 	return f
 }
+
+func EnableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+	}

@@ -12,6 +12,7 @@ import (
 )
 
 func CreateClass(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	user_type := r.Context().Value("type")
 	email, name, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
@@ -62,6 +63,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func JoinClass(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	user_type := r.Context().Value("type")
 	email, name, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Student {
@@ -109,6 +111,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetClass(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
     email, _, res, code := get(r)
 	user_type := (int)(r.Context().Value("type").(float64))
 	ok, data := database.GetAllClass(email,user_type)

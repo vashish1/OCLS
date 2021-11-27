@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/vashish1/OCLS/models"
 	"github.com/vashish1/OCLS/utility"
@@ -53,12 +55,20 @@ func init() {
 }
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
-	url := googleOauthConfig.AuthCodeURL(randomState)
-	res:=models.Response{
-		Data: url,
+	// url := googleOauthConfig.AuthCodeURL(randomState)
+	URL, err := url.Parse(googleOauthConfig.Endpoint.AuthURL)
+	if err != nil {
+		fmt.Println("Parse: " + err.Error())
 	}
-	utility.SendResponse(w,res,200)
-	return
+	parameters := url.Values{}
+	parameters.Add("client_id", googleOauthConfig.ClientID)
+	parameters.Add("scope", strings.Join(googleOauthConfig.Scopes, " "))
+	parameters.Add("redirect_uri", googleOauthConfig.RedirectURL)
+	parameters.Add("response_type", "code")
+	parameters.Add("state", randomState)
+	URL.RawQuery = parameters.Encode()
+	url := URL.String()
+	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
 
 //GoogleCallbackHandler func
@@ -99,14 +109,31 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	var output struct {
-		Name  string
-		Email string
+	
+	URL, err := url.Parse("https://thawing-mountain-02190.herokuapp.com/")
+	if err != nil {
+		fmt.Println("Parse: " + err.Error())
 	}
-	output.Name = user.Name
-	output.Email = user.Email
-	b, _ := json.Marshal(output)
-	w.Write(b)
-	w.WriteHeader(http.StatusAccepted)
+	parameters := url.Values{}
+	parameters.Add("name", user.Name)
+	parameters.Add("email", user.Email)
+	URL.RawQuery = parameters.Encode()
+	url := URL.String()
+	http.Redirect(w, r, url, http.StatusPermanentRedirect)
+}
+
+func Welcome(w http.ResponseWriter,r *http.Request){
+         q:=r.URL.Query()
+		 var output struct {
+			Name  string
+			Email string
+		}
+		output.Name = q.Get("name")
+		output.Email = q.Get("email")
+		res:=models.Response{
+			Success: true,
+			Data: output,
+		}
+		utility.SendResponse(w,res,200)
 	return
 }

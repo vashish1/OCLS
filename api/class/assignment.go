@@ -16,6 +16,7 @@ import (
 
 // Content-Type: application/pdf
 func CreateAssignment(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	email, name, res, code := get(r)
 	fmt.Println(name)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
@@ -73,6 +74,7 @@ func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 }
 
 func SubmitAssignment(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	email, name, res, code := get(r)
 	err := r.ParseMultipartForm(32 << 20) // maxMemory 32MB
 	if err != nil {
