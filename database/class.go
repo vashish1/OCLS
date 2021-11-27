@@ -105,7 +105,7 @@ func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 }
 
 func InsertMcqSubmission(id int, ans []string, email, name string) bool {
-	date := time.Now().Format("2006-01-02 15:04:05")
+	date := time.Now().Format("2006-01-02 15:04")
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -283,6 +283,7 @@ func GetAllAssignment(class string) (bool, []map[string]interface{}) {
 	if err != nil {
 		return false, []map[string]interface{}{}
 	}
+	
 	return true, data
 }
 

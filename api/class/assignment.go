@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/vashish1/OCLS/api/Notification"
@@ -158,6 +159,7 @@ func DownloadSubmission(w http.ResponseWriter, r *http.Request) {
 	err := file.Write(w)
 	fmt.Println(err)
 }
+
 func GetAssignment(w http.ResponseWriter, r *http.Request) {
 	var input struct {
 		Class string `json:"class,omitempty"`
@@ -176,12 +178,56 @@ func GetAssignment(w http.ResponseWriter, r *http.Request) {
 		utility.SendResponse(w, res, code)
 		return
 	}
-	ok, data := database.GetAllAssignment(input.Class)
+	ok, data := database.GetAllAssignment(input.Class,)
 	if ok {
+		temp:=Notification.MarshalAssignment(data)
 		res = models.Response{
 			Success: true,
 			Message: "class data fetch successful",
-			Data:    data,
+			Data:    temp,
+		}
+		utility.SendResponse(w, res, http.StatusOK)
+		return
+	}
+	res = models.Response{
+		Success: false,
+		Error:   "error while fetching data",
+	}
+	utility.SendResponse(w, res, http.StatusInternalServerError)
+	return
+}
+
+func GetAssignmentStudent(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Class string `json:"class,omitempty"`
+	}
+	var res models.Response
+	var code int
+	w.Header().Set("Content-Type", "application/json")
+	body, _ := ioutil.ReadAll(r.Body)
+	err := json.Unmarshal(body, &input)
+	if err != nil {
+		res = models.Response{
+			Success: false,
+			Error:   "Error while Reading Request body",
+		}
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
+		return
+	}
+	ok, data := database.GetAllAssignment(input.Class,)
+	if ok {
+		temp:=Notification.MarshalAssignment(data)
+        var result []models.Assignment
+        for _,x:=range temp{
+			if (time.Now()).Before(x.Date){
+				result = append(result, x)
+			}
+		}
+		res = models.Response{
+			Success: true,
+			Message: "class data fetch successful",
+			Data:    result,
 		}
 		utility.SendResponse(w, res, http.StatusOK)
 		return
