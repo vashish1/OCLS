@@ -1,4 +1,4 @@
-# OCLS
+# OCLS/EAssign
 
     Ocls is an online assignment submission portal built for schools.
 

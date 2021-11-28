@@ -41,6 +41,7 @@ func SendEmail(class_code, date string) bool{
 		fmt.Println(err)
 		return false
 	}
+
 	for _, mail := range list {
 		messagesInfo := []mailjet.InfoMessagesV31{
 			mailjet.InfoMessagesV31{
@@ -51,8 +52,8 @@ func SendEmail(class_code, date string) bool{
 						Name:  mail.Name,
 					},
 				},
-				Subject:  "New Assignment added in " + " ",
-				TextPart: "Dear" + mail.Name + "You have an assignment due, complete it before the date :" +  f,
+				Subject:  "New Assignment added " ,
+				TextPart: "Dear " + mail.Name + " You have an assignment due, complete it before the date :" +  f,
 			},
 		}
 		messages := mailjet.MessagesV31{Info: messagesInfo}
