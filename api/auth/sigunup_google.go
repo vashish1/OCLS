@@ -5,7 +5,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 
+	"github.com/vashish1/OCLS/models"
+	"github.com/vashish1/OCLS/utility"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -29,7 +33,7 @@ var (
 
 func init() {
 
-	f, err := ioutil.ReadFile("./api/auth/creds2.json")
+	f, err := ioutil.ReadFile("./api/auth/creds.json")
 	if err != nil {
 		fmt.Println("could not read the file:", err)
 	}
@@ -37,24 +41,40 @@ func init() {
 	// fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
-		RedirectURL:  cred.Redirect[1],
+		RedirectURL:  cred.Redirect[0],
 		ClientID:     cred.Cid,
 		ClientSecret: cred.Csecret,
 		Scopes: []string{
 			"https://www.googleapis.com/auth/userinfo.profile",
 			"https://www.googleapis.com/auth/userinfo.email",
+			// "https://www.googleapis.com/auth/calendar",
+			// "https://www.googleapis.com/auth/calendar.events",
 		},
 		Endpoint: google.Endpoint,
 	}
 }
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
-	url := googleOauthConfig.AuthCodeURL(randomState)
-	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
+	// url := googleOauthConfig.AuthCodeURL(randomState)
+    utility.EnableCors(&w)
+	URL, err := url.Parse(googleOauthConfig.Endpoint.AuthURL)
+	if err != nil {
+		fmt.Println("Parse: " + err.Error())
+	}
+	parameters := url.Values{}
+	parameters.Add("client_id", googleOauthConfig.ClientID)
+	parameters.Add("scope", strings.Join(googleOauthConfig.Scopes, " "))
+	parameters.Add("redirect_uri", googleOauthConfig.RedirectURL)
+	parameters.Add("response_type", "code")
+	parameters.Add("state", randomState)
+	URL.RawQuery = parameters.Encode()
+	url := URL.String()
+	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
 
 //GoogleCallbackHandler func
 func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	fmt.Print("callback recieved")
 	// var res utility.Result
 
@@ -91,14 +111,46 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	var output struct {
-		Name  string
-		Email string
+	url_string:="http://localhost:3000/type?email="+user.Email+"&name="+user.Name
+	fmt.Println(url_string)
+	URL, err := url.Parse(url_string)
+	if err != nil {
+		fmt.Println("Parse: " + err.Error())
 	}
-	output.Name = user.Name
-	output.Email = user.Email
-	b, _ := json.Marshal(output)
-	w.Write(b)
-	w.WriteHeader(http.StatusAccepted)
+	// var output struct {
+	// 	Name  string
+	// 	Email string
+	// }
+	// output.Name = user.Name
+	// output.Email = user.Email
+	// res:=models.Response{
+	// 	Success: true,
+	// 	Data: output,
+	// }
+	// utility.SendResponse(w,res,200)
+	// return
+	// parameters := url.Values{}
+	// parameters.Add("name", user.Name)
+	// parameters.Add("email", user.Email)
+	// URL.RawQuery = parameters.Encode()
+	url := URL.String()
+	http.Redirect(w, r, url, http.StatusPermanentRedirect)
+}
+
+func Welcome(w http.ResponseWriter,r *http.Request){
+	utility.EnableCors(&w)
+         q:=r.URL.Query()
+		 var output struct {
+			Name  string
+			Email string
+		}
+		output.Name = q.Get("name")
+		output.Email = q.Get("email")
+		res:=models.Response{
+			Success: true,
+			Data: output,
+		}
+		utility.SendResponse(w,res,200)
 	return
 }
+

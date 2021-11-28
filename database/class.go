@@ -38,7 +38,7 @@ func UpdataClassData(code, email, name string) bool {
 	filter := bson.D{
 		{"code", code},
 	}
-	update := bson.M{"$push": bson.M{"student_list": input}}
+	update := bson.M{"$push": bson.M{"studentlist": input}}
 	updateResult, err := ClassCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
@@ -50,7 +50,7 @@ func UpdataClassData(code, email, name string) bool {
 	filter = bson.D{
 		{"email", email},
 	}
-	update = bson.M{"$push": bson.M{"class_code": code}}
+	update = bson.M{"$push": bson.M{"classcode": code}}
 	updateResult, err = StudentCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
@@ -61,7 +61,8 @@ func UpdataClassData(code, email, name string) bool {
 }
 
 func InsertAssignment(desc, t, file, class, email, name string) bool {
-	date, _ := time.Parse("2006-01-02T15:04", t)
+	date, err := time.Parse("2006-01-02", t)
+    fmt.Println(err,date)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Classcode:   class,
@@ -69,14 +70,18 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 		Name:        name,
 		Type:        models.Type_Written,
 		File: models.Written{
-			FileName: "https://storage.googleapis.com/batbuck/" + file,
+			FileName:    "https://storage.googleapis.com/batbuck/" + file,
 			Submissions: []models.Submission{},
 		},
 		Date: date,
 	}
+	fmt.Println(data.ID)
+	fmt.Println("okay ")
+	fmt.Println()
 	ok := Insert(AssignmentCl, data)
 	if ok {
 		if err := UpdateTeacher(email, "assignment", data.ID); err == nil {
+			fmt.Println("reached")
 			return true
 		}
 	}
@@ -84,8 +89,8 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 }
 
 func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
-	date, _ := time.Parse("2006-01-02T15:04", t)
-	input.Soln=[]models.Submission{}
+	date, _ := time.Parse("2006-01-02", t)
+	input.Soln = []models.Submission{}
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Classcode:   code,
@@ -105,7 +110,7 @@ func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 }
 
 func InsertMcqSubmission(id int, ans []string, email, name string) bool {
-	date := time.Now().Format("2006-01-02 T 15:04")
+	date := time.Now().Format("2006-01-02")
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -142,7 +147,7 @@ func InsertMcqSubmission(id int, ans []string, email, name string) bool {
 }
 func InsertSubmission(id, email, name, filename string) bool {
 
-	date := time.Now().Format("2006-01-02 T 15:04")
+	date := time.Now().Format("2006-01-02")
 	var sub = models.Submission{
 		Email:     email,
 		Name:      name,
@@ -150,7 +155,7 @@ func InsertSubmission(id, email, name, filename string) bool {
 		FileName:  "https://storage.googleapis.com/batbuck/" + filename,
 	}
 	id_value, _ := strconv.Atoi(id)
-	fmt.Println(id," ", id_value)
+	fmt.Println(id, " ", id_value)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	filter := bson.D{
@@ -165,7 +170,7 @@ func InsertSubmission(id, email, name, filename string) bool {
 	return true
 }
 
-func GetSubmissions(id int) (error, []models.Submission) {
+func GetSubmissions(id int) (error, []models.Submission, int) {
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -174,10 +179,13 @@ func GetSubmissions(id int) (error, []models.Submission) {
 	}
 	err := AssignmentCl.FindOne(ctx, filter).Decode(&data)
 	if err != nil {
-		return err, nil
+		return err, nil, -1
 	}
-	fmt.Println(data)
-	return nil, data.File.Submissions
+	// fmt.Println(data)
+	if data.Type == models.Type_Written {
+		return nil, data.File.Submissions, data.Type
+	}
+	return nil, data.Form.Soln, data.Type
 }
 
 func GetStudentList(class_code string) (error, []models.List) {
@@ -191,7 +199,7 @@ func GetStudentList(class_code string) (error, []models.List) {
 	if err != nil {
 		return err, nil
 	}
-	fmt.Println(data)
+	// fmt.Println(data)
 	return nil, data.StudentList
 }
 
@@ -223,7 +231,7 @@ func GetAllClass(email string, user_type int) (bool, []models.Class) {
 			fmt.Println(err)
 			return false, []models.Class{}
 		}
-		fmt.Println(data)
+		// fmt.Println(data)
 		codes = data.Class
 	} else {
 		var data models.Student
@@ -237,7 +245,7 @@ func GetAllClass(email string, user_type int) (bool, []models.Class) {
 			fmt.Println(err)
 			return false, []models.Class{}
 		}
-		fmt.Println(data)
+		// fmt.Println(data)
 		codes = data.ClassCode
 	}
 	fmt.Println(codes)
@@ -251,7 +259,7 @@ func GetAllClass(email string, user_type int) (bool, []models.Class) {
 			{"code", c},
 		}
 		err := ClassCl.FindOne(ctx, filter).Decode(&data)
-		fmt.Println(data)
+		// fmt.Println(data)
 		if err != nil {
 			fmt.Println(err)
 		} else {
@@ -280,5 +288,7 @@ func GetAllAssignment(class string) (bool, []map[string]interface{}) {
 	if err != nil {
 		return false, []map[string]interface{}{}
 	}
+	
 	return true, data
 }
+

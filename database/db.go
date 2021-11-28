@@ -101,10 +101,12 @@ func UpdateTeacher(email, key string, value interface{}) error {
 	filter := bson.D{
 		{"email", email},
 	}
+	fmt.Println(email)
 	update := bson.M{"$push": bson.M{key: value}}
 	updateResult, err := TeacherCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
+		fmt.Println("error in update teacher")
 		return errors.New("error while inserting updating the teacher data")
 	}
 	return nil
@@ -128,7 +130,7 @@ func FindAll(c *mongo.Collection, filter interface{}) (error, []map[string]inter
 		if err != nil {
 			return err, []map[string]interface{}{}
 		}
-		fmt.Println(elem)
+		// fmt.Println(elem)
 		result = append(result, *elem)
 	}
 	if err := cur.Err(); err != nil {

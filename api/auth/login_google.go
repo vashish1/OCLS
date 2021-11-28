@@ -13,7 +13,7 @@ import (
 )
 
 type login_google struct {
-	Name  string `json:"password,omitempty"`
+	Name  string `json:"name,omitempty"`
 	Email string `json:"email,omitempty"`
 }
 

@@ -13,6 +13,7 @@ import (
 )
 
 func CreateMCQ(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	email, name, res, code := get(r)
 	w.Header().Set("Content-Type", "application/json")
 	var input struct {
@@ -24,8 +25,10 @@ func CreateMCQ(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
 	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
+		res.Error = err.Error()
+		res.Success = false
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
 		return
 	}
 	ok := database.InsertMcq(input.Mcq, input.Date, input.Code, input.Desc, email, name)
@@ -53,6 +56,7 @@ func CreateMCQ(w http.ResponseWriter, r *http.Request) {
 }
 
 func get(r *http.Request) (string, string, models.Response, int) {
+	
 	email := r.Context().Value("email").(string)
 	name := r.Context().Value("name")
 	var user_name string
@@ -63,6 +67,7 @@ func get(r *http.Request) (string, string, models.Response, int) {
 	}
 	var res models.Response
 	var code int
+	fmt.Println("here",email,name)
 	return email, user_name, res, code
 }
 
@@ -76,8 +81,10 @@ func SubmitMcq(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
 	if err != nil {
-		w.Write([]byte(`{"error": "body not parsed"}`))
-		w.WriteHeader(http.StatusBadRequest)
+		res.Error = err.Error()
+		res.Success = false
+		code = http.StatusBadRequest
+		utility.SendResponse(w, res, code)
 		return
 	}
 	ok := database.InsertMcqSubmission(input.ID, input.Ans, email, name)

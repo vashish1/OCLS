@@ -12,6 +12,7 @@ import (
 )
 
 func CreateClass(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	user_type := r.Context().Value("type")
 	email, name, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
@@ -38,6 +39,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 	}
 	input.TeacherEmail = email
 	input.TeacherName = name
+	input.StudentList=[]models.List{}
 	ok, class_code := database.InsertClass(input, email)
 	fmt.Println(ok, class_code)
 	if ok {
@@ -61,6 +63,7 @@ func CreateClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func JoinClass(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	user_type := r.Context().Value("type")
 	email, name, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Student {
@@ -74,7 +77,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	var input struct {
-		Class_Code string `json:"class_code,required"`
+		ClassCode string `json:"classcode,required"`
 	}
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
@@ -88,7 +91,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := database.UpdataClassData(input.Class_Code, email, name)
+	ok := database.UpdataClassData(input.ClassCode, email, name)
 	if ok {
 		res = models.Response{
 			Success: true,
@@ -108,6 +111,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetClass(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
     email, _, res, code := get(r)
 	user_type := (int)(r.Context().Value("type").(float64))
 	ok, data := database.GetAllClass(email,user_type)

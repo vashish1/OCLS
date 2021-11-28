@@ -42,7 +42,6 @@ func VerifyAuthToken(tokenString string) (bool, map[string]interface{}) {
 	}
     fmt.Println(email)
 	ok, user := db.CheckEmail(email)
-	fmt.Println("error here")
 	if ok && user["type"].(float64) == user_type {
 		return ok, user
 	}

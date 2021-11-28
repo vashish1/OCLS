@@ -11,6 +11,7 @@ import (
 )
 
 func GetAnnouncement(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	var input struct {
 		Class string `json:"class,omitempty"`
 	}
@@ -41,6 +42,7 @@ func GetAnnouncement(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateAnnouncement(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	user_type := r.Context().Value("type")
 	email, name, res, code := get(r)
 	if (int)(user_type.(float64)) != models.Type_Teacher {
