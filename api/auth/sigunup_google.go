@@ -111,7 +111,8 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	url_string:="http://localhost:3000/type?email=vashishtiv@gmail.com&name=yashi"
+	url_string:="http://localhost:3000/type?email="+user.Email+"&name="+user.Name
+	fmt.Println(url_string)
 	URL, err := url.Parse(url_string)
 	if err != nil {
 		fmt.Println("Parse: " + err.Error())
@@ -153,4 +154,3 @@ func Welcome(w http.ResponseWriter,r *http.Request){
 	return
 }
 
-// http://localhost:9000/callback?state=random&code=4%2F0AX4XfWgWKjVsyL39nbS_2uTlb6KtTs2qzGtxfsFzQREM30HeO0hXt8DzU5nZoQYTMF1slg&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid&authuser=4&prompt=consent#
