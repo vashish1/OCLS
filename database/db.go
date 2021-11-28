@@ -101,6 +101,7 @@ func UpdateTeacher(email, key string, value interface{}) error {
 	filter := bson.D{
 		{"email", email},
 	}
+	fmt.Println(email)
 	update := bson.M{"$push": bson.M{key: value}}
 	updateResult, err := TeacherCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
