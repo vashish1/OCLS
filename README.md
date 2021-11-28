@@ -845,6 +845,23 @@ Content-Length: xy
 ## update user details
 
 **You send:**  the modifide data of the user for eg: to add "adm no" and "phone" we will do the following:
+  
+Fields of Techer are:
+    "name"        string    -> only name can be changed 
+	"email"       string 
+    "post"        []int
+    "class"       []string
+    "assignment"  []int
+	"type"        int      
+
+Fields of Student are:
+    "name"      string  ->can be changed
+    "password"  string
+    "email"     string
+	"admno"     string  ->can be changed
+	"phone"     string  ->can be changed
+	"classcode" []string
+	"type" int
 
 **You get:** An `Error-Message` or a `Success-Message` with which you can make further actions along with complete updated data of user.
 

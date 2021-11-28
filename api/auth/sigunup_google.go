@@ -41,7 +41,7 @@ func init() {
 	// fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
-		RedirectURL:  cred.Redirect[1],
+		RedirectURL:  cred.Redirect[0],
 		ClientID:     cred.Cid,
 		ClientSecret: cred.Csecret,
 		Scopes: []string{
@@ -111,15 +111,27 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	
-	URL, err := url.Parse("https://thawing-mountain-02190.herokuapp.com/")
+	url_string:="http://localhost:5500/frontend/redirect.html?email=vashishtiv@gmail.com&name=yashi"
+	URL, err := url.Parse(url_string)
 	if err != nil {
 		fmt.Println("Parse: " + err.Error())
 	}
-	parameters := url.Values{}
-	parameters.Add("name", user.Name)
-	parameters.Add("email", user.Email)
-	URL.RawQuery = parameters.Encode()
+	// var output struct {
+	// 	Name  string
+	// 	Email string
+	// }
+	// output.Name = user.Name
+	// output.Email = user.Email
+	// res:=models.Response{
+	// 	Success: true,
+	// 	Data: output,
+	// }
+	// utility.SendResponse(w,res,200)
+	// return
+	// parameters := url.Values{}
+	// parameters.Add("name", user.Name)
+	// parameters.Add("email", user.Email)
+	// URL.RawQuery = parameters.Encode()
 	url := URL.String()
 	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
@@ -140,3 +152,5 @@ func Welcome(w http.ResponseWriter,r *http.Request){
 		utility.SendResponse(w,res,200)
 	return
 }
+
+// http://localhost:9000/callback?state=random&code=4%2F0AX4XfWgWKjVsyL39nbS_2uTlb6KtTs2qzGtxfsFzQREM30HeO0hXt8DzU5nZoQYTMF1slg&scope=email+profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+openid&authuser=4&prompt=consent#

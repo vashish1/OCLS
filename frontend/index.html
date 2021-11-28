@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <script>
+    function logres(url){
+      return console.log("tt")
+      // return fetch(url).then(es=>console.log(res));
+    }
+    function handleclick() {
+      console.log("clicked")
+      let Url;
+      fetch("http://localhost:9000/signup/google").then(
+        res=>{
+             console.log(res.url)
+
+          Url=res.url
+          window.location.replace(Url)
+          // console.log(url)
+      
+
+          },
+     
+        // (res) => console.log(res.url)
+      )
+      
+    }
+  </script>
+  <body>
+    <button onclick="handleclick()">Click</button>
+  </body>
+</html>

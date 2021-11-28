@@ -61,7 +61,7 @@ func UpdataClassData(code, email, name string) bool {
 }
 
 func InsertAssignment(desc, t, file, class, email, name string) bool {
-	date, _ := time.Parse("2006-01-02T15:04", t)
+	date, _ := time.Parse("2006-01-02", t)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Classcode:   class,
@@ -84,7 +84,7 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 }
 
 func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
-	date, _ := time.Parse("2006-01-02T15:04", t)
+	date, _ := time.Parse("2006-01-02", t)
 	input.Soln = []models.Submission{}
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
@@ -105,7 +105,7 @@ func InsertMcq(input models.Mcq, t, code, desc, email, name string) bool {
 }
 
 func InsertMcqSubmission(id int, ans []string, email, name string) bool {
-	date := time.Now().Format("2006-01-02 15:04")
+	date := time.Now().Format("2006-01-02")
 	var data models.Assignment
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
@@ -142,7 +142,7 @@ func InsertMcqSubmission(id int, ans []string, email, name string) bool {
 }
 func InsertSubmission(id, email, name, filename string) bool {
 
-	date := time.Now().Format("2006-01-02 15:04:05")
+	date := time.Now().Format("2006-01-02")
 	var sub = models.Submission{
 		Email:     email,
 		Name:      name,
