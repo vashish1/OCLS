@@ -111,7 +111,7 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	url_string:="http://localhost:5500/frontend/redirect.html?email=vashishtiv@gmail.com&name=yashi"
+	url_string:="http://localhost:3000/type?email=vashishtiv@gmail.com&name=yashi"
 	URL, err := url.Parse(url_string)
 	if err != nil {
 		fmt.Println("Parse: " + err.Error())
