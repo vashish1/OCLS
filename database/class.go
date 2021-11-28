@@ -61,7 +61,8 @@ func UpdataClassData(code, email, name string) bool {
 }
 
 func InsertAssignment(desc, t, file, class, email, name string) bool {
-	date, _ := time.Parse("2006-01-02", t)
+	date, err := time.Parse("2006-01-02", t)
+    fmt.Println(err,date)
 	var data = models.Assignment{
 		ID:          utility.GenerateUUID(),
 		Classcode:   class,
@@ -74,9 +75,13 @@ func InsertAssignment(desc, t, file, class, email, name string) bool {
 		},
 		Date: date,
 	}
+	fmt.Println(data.ID)
+	fmt.Println("okay ")
+	fmt.Println()
 	ok := Insert(AssignmentCl, data)
 	if ok {
 		if err := UpdateTeacher(email, "assignment", data.ID); err == nil {
+			fmt.Println("reached")
 			return true
 		}
 	}

@@ -77,7 +77,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	var input struct {
-		Class_Code string `json:"class_code,required"`
+		ClassCode string `json:"classcode,required"`
 	}
 	body, _ := ioutil.ReadAll(r.Body)
 	err := json.Unmarshal(body, &input)
@@ -91,7 +91,7 @@ func JoinClass(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ok := database.UpdataClassData(input.Class_Code, email, name)
+	ok := database.UpdataClassData(input.ClassCode, email, name)
 	if ok {
 		res = models.Response{
 			Success: true,

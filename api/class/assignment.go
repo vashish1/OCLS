@@ -30,6 +30,7 @@ func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 	}
 	var desc = r.FormValue("description")
 	var t = r.FormValue("date")
+	fmt.Println(t)
 	var class_code = r.FormValue("class_code")
 	file, h, err := r.FormFile("file")
 	if err != nil {
@@ -70,6 +71,7 @@ func CreateAssignment(w http.ResponseWriter, r *http.Request) {
 		}
 		code = http.StatusBadRequest
 	}
+	fmt.Println("here")
 	utility.SendResponse(w, res, code)
 	return
 }

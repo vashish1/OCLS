@@ -105,6 +105,7 @@ func UpdateTeacher(email, key string, value interface{}) error {
 	updateResult, err := TeacherCl.UpdateOne(ctx, filter, update)
 	if err != nil || updateResult.MatchedCount == 0 {
 		fmt.Println(err)
+		fmt.Println("error in update teacher")
 		return errors.New("error while inserting updating the teacher data")
 	}
 	return nil
