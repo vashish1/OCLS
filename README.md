@@ -8,6 +8,10 @@
 
 <a href="" title="OCLS Demo"><img src="{image-url}" alt="Alternate Text" /></a>
 
+## The Presentation [link]()
+
+## The Video Demo [link]()
+
 ### The Idea 
     During the tough time of COVID-19 the childrens were affected very much in terms of academics, they had no option other than online studies.
 
