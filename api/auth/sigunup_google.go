@@ -41,7 +41,7 @@ func init() {
 	// fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
-		RedirectURL:  cred.Redirect[1],
+		RedirectURL:  cred.Redirect[0],
 		ClientID:     cred.Cid,
 		ClientSecret: cred.Csecret,
 		Scopes: []string{
