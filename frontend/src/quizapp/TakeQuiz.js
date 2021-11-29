@@ -32,7 +32,6 @@ export default function TakeQuiz() {
 		if (studentAnswer==form.answers) {
 			setScore(score + 1);
 		}
-		console.log(studentAnswers)
 		const nextQuestion = currentQuestion + 1;
 		if (nextQuestion < form.ques.length) {
 			setCurrentQuestion(nextQuestion);

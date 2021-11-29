@@ -49,10 +49,7 @@ export default function AssignOutlinedCard(props) {
                    Assignment No. : {id}
                   </Typography>
                   
-                  <Typography variant="h5" component="h2">
-
-                    Teacher: {name}
-                  </Typography>
+                  
                   <Typography variant="h5" component="h2">
 
                     Description: {description}

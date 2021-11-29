@@ -1,12 +1,8 @@
 import React, { useState,useEffect } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
+import { Grid,Paper, Avatar, TextField, Button, Typography,Link, CircularProgress } from '@material-ui/core'
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 import Axios from 'axios';
-import LoginWithGoogle from './LoginWithGoogle';
-import { useGlobal } from '../context/SignupContext';
 const initialValues={
     email: '',
     password: ''
@@ -26,6 +22,7 @@ const Login=({handleChange})=>{
     const textField={margin:'10px auto'}
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading,setLoading] = useState(false);
     const [user,setUser]=useState('')
     const [token,setToken]=useState('')
     // const [inpData, setInpData] = useState(defData);
@@ -50,22 +47,22 @@ const Login=({handleChange})=>{
   
     const handleSignIn= async (e)=>{
         e.preventDefault();
+        setLoading(true);
         let item={email,password};
 
         const {data} = await Axios.post('https://thawing-mountain-02190.herokuapp.com/login',
             loginValues
           )
-          console.log(data)
 
         // set the state of the user
         // store the user in localStorage
         
-        console.log(data.data.Token)
         setUser(data.data);
         setToken(data.data.Token);
         localStorage.setItem('user', JSON.stringify(data.data.User)) ;
         localStorage.setItem('token', data.data.Token) ; 
         history('/dashboard')
+        setLoading(false);
     }
     const handleLogInWithGoogle= async (e)=>{
         // let url_string =window.location.href
@@ -103,7 +100,9 @@ const Login=({handleChange})=>{
                 <TextField style={textField} name="email" id="outlined-basic" onChange={handleInput} label='Username' placeholder='Enter username' variant="outlined" fullWidth required/>
                 <TextField style={textField} name="password" id="outlined-basic" onChange={handleInput} variant="outlined" label='Password' placeholder='Enter password' type='password' fullWidth required/>
                 
-                <Button type='submit' onClick={handleSignIn} color='primary' variant="contained" style={btnstyle} fullWidth>Sign in</Button>
+                <Button type='submit' onClick={handleSignIn} color='primary' variant="contained" style={btnstyle} fullWidth>
+                {loading ? <CircularProgress color="secondary"/> : <span>Sign in</span>}
+                </Button>
                 <br/>
                 <Button type='submit' onClick={handleLogInWithGoogle} color='primary' variant="contained" style={btnstyle} fullWidth>Google Sign in</Button>
                 

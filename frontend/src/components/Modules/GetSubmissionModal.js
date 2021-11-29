@@ -1,14 +1,12 @@
 import React, {useState} from 'react';
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
+import { TextField, Button} from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List'
-import * as moment from 'moment';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
-import { v4 as uuidv4 } from 'uuid';
+
 import { Note } from '@material-ui/icons';
 function rand() {
   return Math.round(Math.random() * 20) - 10;
@@ -40,16 +38,12 @@ export default function GetSubmissionModal() {
   // getModalStyle is not a pure function, we roll the style only on the first render
     const btnstyle={margin:'8px 0'}
     const textField={margin:'10px auto'};
-    const textField2={
-        margin:'10px auto',};
+    
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
-  const [teacherName,setTeacherName]=useState("");
-    const [desc,setDesc]=useState("");
-    const yourDate = new Date();
-    const currentTime = moment(yourDate, 'DD-MMM-YY');
-    const userToken=localStorage.getItem('token')
-    const currentClass=localStorage.getItem('class-code')
+ 
+    // const yourDate = new Date();
+   
     const [uniqueId,setUniqueId]=useState("")
 
     // const downloadSubmission =(uri, name) =>

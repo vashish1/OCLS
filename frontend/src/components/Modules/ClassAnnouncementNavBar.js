@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
-import {AppBar, Tabs, Tab} from '@material-ui/core';
+import {AppBar} from '@material-ui/core';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -20,13 +20,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
 import ClassIcon from '@material-ui/icons/Class';
-import AssignmentIcon from '@material-ui/icons/Assignment';
-import GetAnnouncement from '../GetAnnouncement';
-import SimpleTabs from '../Containers/AnnounceAssign';
 import AnnouncementModal from './AnnouncementModal';
-import OutlinedCard from './ClassCard';
 import { ArrowBack } from '@material-ui/icons';
 import AnnounceOutlinedCard from './AnnounceClassCard';
 const drawerWidth = 400;
@@ -120,9 +115,9 @@ const AnnouncementMiniDrawer = props =>{
   const handleDrawerClose = () => {
     setOpen(false);
   };
-  const handleChange = (event) => {
-    setAuth(event.target.checked);
-  };
+  // const handleChange = (event) => {
+  //   setAuth(event.target.checked);
+  // };
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);

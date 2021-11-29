@@ -31,13 +31,13 @@ var (
 )
 
 func init() {
-
+    fmt.Println("reading file")
 	f, err := ioutil.ReadFile("./api/auth/creds.json")
 	if err != nil {
 		fmt.Println("could not read the file:", err)
 	}
 	err = json.Unmarshal(f, &cred)
-	// fmt.Print(cred.Redirect[0])
+	fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
 		RedirectURL:  cred.Redirect[0],
@@ -51,6 +51,7 @@ func init() {
 		},
 		Endpoint: google.Endpoint,
 	}
+	fmt.Println(googleOauthConfig)
 }
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {

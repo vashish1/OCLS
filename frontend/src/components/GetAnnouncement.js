@@ -31,7 +31,6 @@ const GetAnnouncement = () => {
             body:JSON.stringify(item)
         });
         result = await result.json();
-        console.log(result)
     }
     return (
         <div>

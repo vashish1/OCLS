@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
+import { Grid,Paper, Avatar, TextField, Button } from '@material-ui/core'
 import { QuestionAnswer } from '@material-ui/icons'
 import moment from 'moment'
 import { useNavigate } from 'react-router'
@@ -16,13 +16,13 @@ const Createquiz = () => {
     const btnstyle={margin:'8px 0'}
     const textField={margin:'10px auto'}
     const submitQuiz={backgroundColor:'#116530',color:'#ffffff'}
-    let questions=[]
+    
     
     let mcqvalues={
         ques:new_list,
         answers:answer
     }
-    const [qa, setQa] = useState(mcqvalues)
+    // const [qa, setQa] = useState(mcqvalues)
     
     const [question,setQuestion]=useState("")
     
@@ -79,7 +79,6 @@ const currentTime = moment(yourDate).format('DD-MMM-YY');
         
         new_list.push(item)
         
-        console.log(new_list)
 
     }
     

@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from 'react'
+import React, { useState } from 'react'
 import { Grid, Paper, Avatar, Typography, TextField, Button } from '@material-ui/core'
 import AddCircleOutlineOutlinedIcon from '@material-ui/icons/AddCircleOutlineOutlined';
 import Radio from '@material-ui/core/Radio';
@@ -6,10 +6,10 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 // import FormLabel from '@material-ui/core/FormLabel';
-import Checkbox from '@material-ui/core/Checkbox';
 // import Axios from 'axios';
-import SignUpWithGoogle from './SignUpWithGoogle';
 import { useNavigate } from 'react-router';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
 const SignUp = () => {
     const paperStyle = { padding: 20, width: 300, margin: "0 auto" }
     const headerStyle = { margin: 0 }
@@ -18,24 +18,15 @@ const SignUp = () => {
     const textField={margin:'10px auto'}
     const [email, setEmail] = useState('');
     const [password, setPassword]=useState('');
+    const [loader,setLoading] = useState(false);
     // const [userType, setUserType]=useState(0);
     const [value, setValue]=useState(1)
-    // const handleSignUp= async (e)=>{
-        
-    //     const user={
-    //         email:email,
-    //         password:password,
-    //         type:userType
-    //     }
-    //     const {data} = await Axios.post('https://thawing-mountain-02190.herokuapp.com/signup',
-    //         user
-    //       )
-    //       console.log(data)
-    // }
+   
 
     const history=useNavigate();
     const handleSignUp= async (e)=>{
         e.preventDefault();
+        setLoading(true);
         let item={email:email,password:password,type:value};
         let result=await fetch("https://thawing-mountain-02190.herokuapp.com/signup",
         {
@@ -48,6 +39,7 @@ const SignUp = () => {
         });
         result = await result.json();
         history('/login')
+        setLoading(false);
         
     }
     const handleSignUpWithGoogle= async (e)=>{
@@ -109,7 +101,9 @@ const SignUp = () => {
                         Login
                     </a>
                     </Typography>
-                    <Button type='submit' variant='contained' onClick={handleSignUp} color='primary'>Sign up</Button><br/><br/>
+                    <Button type='submit' variant='contained' onClick={handleSignUp} color='primary'>
+                    {loader ? <CircularProgress color="secondary" /> : <span>Sign up</span>}
+                    </Button><br/><br/>
                     <Button type='submit' variant='contained' onClick={handleSignUpWithGoogle} color='primary'>Google SignUp</Button>
                     </form>
             </Paper>

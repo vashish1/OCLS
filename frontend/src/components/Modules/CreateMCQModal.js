@@ -68,8 +68,7 @@ export default function CreateMCQModal() {
       requestData.set('date',currentTime);
       requestData.set('class_code',currentClass);
       requestData.set('file', imageAsFile);
-        console.log(currentTime)
-        console.log(currentClass)
+    
         // let result=await fetch("https://thawing-mountain-02190.herokuapp.com/class/assignment/add",
         // {
         //     method:"POST",
@@ -100,7 +99,7 @@ export default function CreateMCQModal() {
           body:item
       });
       result = await result.json();
-      console.log(result)
+    
       handleClose()
   }
   
