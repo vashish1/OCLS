@@ -4,10 +4,6 @@
 
     The project is live [here](https://eassign.netlify.app/)
 
-    <!-- Video demo:
-
-<a href="" title="OCLS Demo"><img src="{image-url}" alt="Alternate Text" /></a> -->
-
 ## The Presentation [link](https://www.canva.com/design/DAEw77d_Ejo/1oAEWVS1lLaUpo3KfOZGkQ/view?utm_content=DAEw77d_Ejo&utm_campaign=designshare&utm_medium=link&utm_source=publishsharelink)
 
 ## The Video Demo [link](https://www.canva.com/design/DAEw_KEnoYs/kLSGcnQG22gjR1toCKkk5w/view?utm_content=DAEw_KEnoYs&utm_campaign=designshare&utm_medium=link&utm_source=recording_view)
