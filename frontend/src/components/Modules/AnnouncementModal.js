@@ -7,7 +7,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List'
 import * as moment from 'moment';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 function rand() {
   return Math.round(Math.random() * 20) - 10;
 }
@@ -81,8 +81,8 @@ export default function AnnouncementModal() {
   const body =userType==1? (
     <div style={modalStyle} className={classes.paper}>
       <h2 id="simple-modal-title">Create Announcement</h2>
-      <TextField style={textField} id="outlined-basic" onChange={(e)=>setTeacherName(e.target.value)} label='Teacher Name' placeholder='Enter Subject' variant="outlined" fullWidth required/>
-       <TextField style={textField} id="outlined-basic" onChange={(e)=>setDesc(e.target.value)} label='Description' placeholder='Enter Subject' variant="outlined" fullWidth required/>
+      <TextField style={textField} id="outlined-basic" onChange={(e)=>setTeacherName(e.target.value)} label='Teacher Name' placeholder='Enter Teacher Name' variant="outlined" fullWidth required/>
+       <TextField style={textField} id="outlined-basic" onChange={(e)=>setDesc(e.target.value)} label='Description' placeholder='Enter Description' variant="outlined" fullWidth required/>
         
       <Button type='submit' onClick={handleCreateAnnouncement} color='primary' variant="contained" style={btnstyle} fullWidth>Create Announcement</Button>
     </div>
@@ -94,7 +94,7 @@ export default function AnnouncementModal() {
     <List>
           
             {userType==1?(<ListItem button onClick={handleOpen}>
-              <ListItemIcon> <NotificationImportantIcon /></ListItemIcon>
+              <ListItemIcon> <AddCircleOutlineIcon/></ListItemIcon>
               <ListItemText label="Create Class"> Create Announcement</ListItemText>
             </ListItem>):null}
         </List>

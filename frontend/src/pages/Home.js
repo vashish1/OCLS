@@ -24,7 +24,7 @@ const Home=({handleChange})=>{
         marginTop:300,
     }
     const avatarStyle={backgroundColor:'#1bbd7e'}
-    const btnstyle={margin:'8px 0',backgroundColor:'#1bbd7e'}
+    const btnstyle={margin:'8px 0'}
   
     // const [inpData, setInpData] = useState(defData);
     const history = useNavigate();

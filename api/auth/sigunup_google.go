@@ -41,7 +41,7 @@ func init() {
 	// fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
-		RedirectURL:  cred.Redirect[0],
+		RedirectURL:  cred.Redirect[1],
 		ClientID:     cred.Cid,
 		ClientSecret: cred.Csecret,
 		Scopes: []string{
@@ -111,28 +111,12 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	url_string:="http://localhost:3000/type?email="+user.Email+"&name="+user.Name
+	url_string:="https://eassign.netlify.app/type?email="+user.Email+"&name="+user.Name
 	fmt.Println(url_string)
 	URL, err := url.Parse(url_string)
 	if err != nil {
 		fmt.Println("Parse: " + err.Error())
 	}
-	// var output struct {
-	// 	Name  string
-	// 	Email string
-	// }
-	// output.Name = user.Name
-	// output.Email = user.Email
-	// res:=models.Response{
-	// 	Success: true,
-	// 	Data: output,
-	// }
-	// utility.SendResponse(w,res,200)
-	// return
-	// parameters := url.Values{}
-	// parameters.Add("name", user.Name)
-	// parameters.Add("email", user.Email)
-	// URL.RawQuery = parameters.Encode()
 	url := URL.String()
 	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
-import {AppBar, Tabs, Tab} from '@material-ui/core';
+import {AppBar} from '@material-ui/core';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -20,14 +20,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
 import ClassIcon from '@material-ui/icons/Class';
-import AssignmentIcon from '@material-ui/icons/Assignment';
-import GetAnnouncement from '../GetAnnouncement';
-import SimpleTabs from '../Containers/AnnounceAssign';
-import GetClass from '../getClasses';
 import CreateClass from '../createClass';
-import { useGlobal } from '../../context/SignupContext';
 import OutlinedCard from './ClassCard';
 const drawerWidth = 240;
 
@@ -108,7 +102,9 @@ const MiniDrawer = props =>{
   // const { isLoading,setIsLoading } = useGlobal();
   // const allClass=!isLoading?JSON.parse(localStorage.getItem('classes')):null
   // const allClass=JSON.parse(localStorage.getItem('classes'))
-  const [toggle,setToggle]=useState(true)
+  
+  const [loadingDone,setLoadingDone]=useState(false)
+  const [classData, setClassData] = useState(false)
   const navigateto = useNavigate()
   const handleLogout = () => {
       localStorage.clear();
@@ -116,7 +112,7 @@ const MiniDrawer = props =>{
   };
   useEffect(() => {
     handleGetClasses()
-  }, [])
+  }, [ ])
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -138,7 +134,7 @@ const MiniDrawer = props =>{
   };
   const userToken =localStorage.getItem('token')
   const handleGetClasses= async ()=>{
-      setToggle(true)
+      
       let result=await fetch("https://thawing-mountain-02190.herokuapp.com/class/get",
       {
           method:"GET",
@@ -151,7 +147,9 @@ const MiniDrawer = props =>{
       result = await result.json();
       setUserClass(result.data)
       // localStorage.setItem('classes',JSON.stringify(result.data))
-      setToggle(false)
+
+      {result.data?setClassData(true):setClassData(false)}
+      setLoadingDone(true)
   }
 const handleProfile=()=>{
   navigateto('/profile')
@@ -250,14 +248,17 @@ const handleProfile=()=>{
       </Drawer>
       <main className={classes.content}>
         <div className={classes.toolbar} />
-        {userClass.map(({subject,code},id)=>{
+       
+        
+        
           
-          return (
-            <OutlinedCard key={id} props={{subject,code,id}}/>
-          );})
-        
-        
-          }
+          {classData?(loadingDone&&(  
+            userClass.map(({subject,code},id)=>{
+          
+              return (
+                <OutlinedCard key={id} props={{subject,code,id}}/>
+              );})
+           )):null }
         
       </main>
     </div>
@@ -265,16 +266,3 @@ const handleProfile=()=>{
 }
 
 export default MiniDrawer
-// const things={userClass.map(({subject,code},id)=>{
-          
-            // return (
-            //   <div className="lead-list__row" key={id}>
-            //     <p>
-            //       {id + 1}. {subject}
-            //     </p>
-            //     <p>code {code}</p>
-            //   </div>
-            // );})
-          
-          
-            // }

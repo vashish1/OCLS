@@ -36,7 +36,7 @@ const SignUp = () => {
     const history=useNavigate();
     const handleSignUp= async (e)=>{
         e.preventDefault();
-        let item={email,password,value};
+        let item={email:email,password:password,type:value};
         let result=await fetch("https://thawing-mountain-02190.herokuapp.com/signup",
         {
             method:"POST",
@@ -53,7 +53,7 @@ const SignUp = () => {
     const handleSignUpWithGoogle= async (e)=>{
         console.log("clicked")
       let Url;
-      fetch("http://localhost:9000/signup/google").then(
+      fetch("https://thawing-mountain-02190.herokuapp.com/signup/google").then(
         res=>{
              console.log(res.url)
 

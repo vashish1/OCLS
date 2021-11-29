@@ -195,15 +195,7 @@ const gotoCreateQuiz=()=>{
           >
             <MenuIcon />
           </IconButton>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            onClick={handleBackward}
-            edge="start"
-            
-          >
-            <ArrowBack/>
-          </IconButton>
+          
           <Typography className={classes.entitle} variant="h4">ASSIGNMENTS</Typography>
           {auth && (
                         <div>
@@ -262,7 +254,18 @@ const gotoCreateQuiz=()=>{
         </div>
         <Divider />
         <List>
-          
+        <ListItem button onClick={handleBackward}>
+        <ListItemIcon><IconButton
+        color="inherit"
+        aria-label="open drawer"
+        
+        edge="start"
+      >
+        <ArrowBack/>
+      </IconButton>
+      </ListItemIcon>
+      <ListItemText label="back to Dashboard">Back To Dashboard</ListItemText>
+      </ListItem>
         <ListItem button onClick={handleGetAssignment}>
         <ListItemIcon> <ClassIcon /></ListItemIcon>
         <ListItemText label="Create Class">Assignments</ListItemText>
