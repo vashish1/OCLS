@@ -150,7 +150,6 @@ const AnnouncementMiniDrawer = props =>{
     });
     result = await result.json();
     setAnnounce(result.data)
-    console.log(result.data)
     {result.data?setClassData(true):setClassData(false)}
     setLoadingDone(true)
 }
@@ -183,15 +182,7 @@ const goToProfile=()=>{
           >
             <MenuIcon />
           </IconButton>
-          <IconButton
-          color="inherit"
-          aria-label="open drawer"
-          onClick={handleBackward}
-          edge="start"
           
-        >
-          <ArrowBack/>
-        </IconButton>
         <Typography className={classes.entitle} variant="h4">ANNOUNCEMENTS</Typography>
           {auth && (
                         <div>
@@ -252,7 +243,18 @@ const goToProfile=()=>{
         </div>
         <Divider />
         <List>
-          
+        <ListItem button onClick={handleBackward}>
+        <ListItemIcon><IconButton
+        color="inherit"
+        aria-label="open drawer"
+        
+        edge="start"
+      >
+        <ArrowBack/>
+      </IconButton>
+      </ListItemIcon>
+      <ListItemText label="back to Dashboard">Back To Dashboard</ListItemText>
+      </ListItem>
         <ListItem button onClick={handleGetAnnouncement}>
         <ListItemIcon> <ClassIcon /></ListItemIcon>
         <ListItemText label="Create Class">Announcements</ListItemText>
@@ -264,10 +266,10 @@ const goToProfile=()=>{
       </Drawer>
       <main className={classes.content}>
         <div className={classes.toolbar} />
-        {classData?(loadingDone&&(announce.map(({teachername,description,classcode},id)=>{
+        {classData?(loadingDone&&(announce.map(({teachername,description,classcode,timestamp},id)=>{
           
             return (
-              <AnnounceOutlinedCard key={id} props={{teachername,description,classcode,id}}/>
+              <AnnounceOutlinedCard key={id} props={{teachername,description,classcode,timestamp,id}}/>
             );})
           
           

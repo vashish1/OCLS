@@ -80,6 +80,7 @@ export default function UpdateProfile() {
         result = await result.json();
         console.log(result)
         // localStorage.setItem('user', JSON.stringify(result.data.User)) ;
+        localStorage.setItem('updatedUser', JSON.stringify(result.data)) ;
         navigateto('/profile')
     }
     

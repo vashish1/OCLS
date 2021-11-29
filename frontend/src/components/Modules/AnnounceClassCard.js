@@ -28,7 +28,7 @@ const useStyles = makeStyles({
 export default function AnnounceOutlinedCard(props) {
   const classes = useStyles();
   const bull = <span className={classes.bullet}>•</span>;
-    const {teachername,description,classcode,id}=props.props
+    const {teachername,description,classcode,timestamp,id}=props.props
     const history=useNavigate()
     localStorage.setItem('class-code',classcode)
   
@@ -49,7 +49,9 @@ export default function AnnounceOutlinedCard(props) {
 
                     Description: {description}
                   </Typography>
-                  
+                  <Typography className={classes.pos} color="textSecondary">
+                   Last Submission date- {timestamp}
+                  </Typography>
                 </CardContent>
                
               </Card>

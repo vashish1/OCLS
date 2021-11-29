@@ -30,6 +30,8 @@ export default function Profile() {
   const classes = useStyles();
   const bull = <span className={classes.bullet}>•</span>;
     const user=JSON.parse(localStorage.getItem('user'))
+    const upUser=JSON.parse(localStorage.getItem('updatedUser'))
+    const updatedUser=upUser?upUser:user
     const history=useNavigate()
     const goToProfile=()=>{
         history('/profile/update')
@@ -45,16 +47,16 @@ export default function Profile() {
           User Profile
         </Typography>
         <Typography className={classes.pos} color="textSecondary">
-          Name: {user.name}
+          {upUser?(`Name: ${updatedUser.name}`):(`Name: ${user.name}`)}
         </Typography>
         <Typography className={classes.pos} color="textSecondary">
          Email: {user.email}
         </Typography>
         {user.type==2?(<Typography className={classes.pos} color="textSecondary">
-        Admission No.: {user.admno}
+         {upUser?(`Admission No.:${updatedUser.admno}`):(`Admission No.:${user.admno}`)}
        </Typography>):null}
        <Typography className={classes.pos} color="textSecondary">
-        Phone No.: {user.phone}
+       {upUser?(`Phone No.: ${updatedUser.phone}`):(`Phone No.: ${user.phone}`)}
        </Typography>
           {user.type==1?(<Typography className={classes.pos} color="textSecondary">Role: Teacher</Typography>):(<Typography className={classes.pos} color="textSecondary">Role: Stduent</Typography>)}
           

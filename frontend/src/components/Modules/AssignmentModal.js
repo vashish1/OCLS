@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
+import {TextField, Button } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import ListItem from '@material-ui/core/ListItem';
@@ -7,8 +7,8 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List'
 import * as moment from 'moment';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
-import { v4 as uuidv4 } from 'uuid';
+
+import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutlineOutlined';
 function rand() {
   return Math.round(Math.random() * 20) - 10;
 }
@@ -53,6 +53,7 @@ const AssignmentModal= props => {
     const userData=JSON.parse(localStorage.getItem('user'))
     const userType=userData.type
     const [uniqueId,setUniqueId]=useState("")
+    const [subDate,setSubDate]=useState("")
   const handleImageAsFile=(e)=>{
     const image=e.target.files[0];
     
@@ -61,7 +62,7 @@ const AssignmentModal= props => {
   const classid=JSON.parse(localStorage.getItem('classid'))
   const handleCreateAssignment= async (e)=>{
     e.preventDefault()
-    const item={desc,currentTime,currentClass,imageAsFile}
+    const item={desc,subDate,currentClass,imageAsFile}
     
     const requestData = new FormData();
   requestData.set('description',desc);
@@ -117,11 +118,28 @@ const AssignmentModal= props => {
     setUniqueId(e.target.value)
     
   };
+  const handleDateInput=(e)=>{
+    setSubDate(e.target.value)
+  }
+  
   
   const body = userType==1?(
     <div style={modalStyle} className={classes.paper}>
       <h2 id="simple-modal-title">Create Assignment</h2>
        <TextField style={textField} id="outlined-basic" onChange={(e)=>setDesc(e.target.value)} label='Description' placeholder='Enter Subject' variant="outlined" fullWidth required/>
+       <form className={classes.container} noValidate>
+       <TextField
+         id="date"
+         label="Submission Date"
+         type="date"
+         defaultValue="24-11-2021"
+         onChange={handleDateInput}
+         className={classes.textField}
+         InputLabelProps={{
+           shrink: true,
+         }}
+       />
+     </form>
        <input
        accept="image/*,file_extension/*"
        className={classes.input}
@@ -160,7 +178,7 @@ const AssignmentModal= props => {
     <List>
           
             <ListItem button onClick={handleOpen}>
-              <ListItemIcon> <NotificationImportantIcon /></ListItemIcon>
+              <ListItemIcon> <AddCircleOutlineIcon/></ListItemIcon>
               {userType==1?<ListItemText label="Create Class"> Create Assignment</ListItemText>:<ListItemText label="Create Class"> Submit Assignment</ListItemText>}
             </ListItem>
         </List>

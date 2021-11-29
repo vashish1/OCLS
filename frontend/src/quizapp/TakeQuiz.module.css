@@ -3,7 +3,7 @@
   .bodydiv {
     width:100vw;
     height:100vh;
-    background-color: #7cc6fe;
+    background-color: #ffffff;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -12,9 +12,9 @@
   
   .app {
     background-color: #252d4a;
-    width: 450px;
+    width: 80vh;
     min-height: 200px;
-    height: min-content;
+    height: 40vh;
     border-radius: 15px;
     padding: 20px;
     box-shadow: 10px 10px 42px 0px rgba(0, 0, 0, 0.75);
@@ -25,7 +25,7 @@
   
   .scoresection {
     display: flex;
-    font-size: 24px;
+    font-size: 32px;
     align-items: center;
   }
   
@@ -45,6 +45,7 @@
   
   .questiontext {
     margin-bottom: 12px;
+    font-size: 32px;
   }
   
   .timertext {
@@ -67,7 +68,7 @@
   
   .optionbutton {
     width: 100%;
-    font-size: 16px;
+    font-size: 32px;
     color: #ffffff;
     background-color: #252d4a;
     border-radius: 15px;
@@ -75,7 +76,7 @@
     padding: 5px;
     justify-content: flex-start;
     align-items: center;
-    border: 5px solid #234668;
+    border: 5px solid #ffffff;
     cursor: pointer;
   }
   
