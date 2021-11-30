@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/vashish1/OCLS/models"
 	"github.com/vashish1/OCLS/utility"
@@ -31,7 +32,7 @@ var (
 )
 
 func init() {
-    fmt.Println("reading file")
+	fmt.Println("reading file")
 	f, err := ioutil.ReadFile("./api/auth/creds.json")
 	if err != nil {
 		fmt.Println("could not read the file:", err)
@@ -56,20 +57,23 @@ func init() {
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 	utility.EnableCors(&w)
-	url := googleOauthConfig.AuthCodeURL(randomState)
+	// url := googleOauthConfig.AuthCodeURL(randomState)
+	// fmt.Println(url)
 
-	// URL, err := url.Parse(googleOauthConfig.Endpoint.AuthURL)
-	// if err != nil {
-	// 	fmt.Println("Parse: " + err.Error())
-	// }
-	// parameters := url.Values{}
-	// parameters.Add("client_id", googleOauthConfig.ClientID)
-	// parameters.Add("scope", strings.Join(googleOauthConfig.Scopes, " "))
-	// parameters.Add("redirect_uri", googleOauthConfig.RedirectURL)
-	// parameters.Add("response_type", "code")
-	// parameters.Add("state", randomState)
-	// URL.RawQuery = parameters.Encode()
-	// url := URL.String()
+	URL, err := url.Parse(googleOauthConfig.Endpoint.AuthURL)
+	fmt.Println(URL)
+	if err != nil {
+		fmt.Println("Parse: " + err.Error())
+	}
+	parameters := url.Values{}
+	parameters.Add("client_id", googleOauthConfig.ClientID)
+	parameters.Add("scope", strings.Join(googleOauthConfig.Scopes, " "))
+	parameters.Add("redirect_uri", googleOauthConfig.RedirectURL)
+	parameters.Add("response_type", "code")
+	parameters.Add("state", randomState)
+	URL.RawQuery = parameters.Encode()
+	url := URL.String()
+	fmt.Println(url)
 	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
 
