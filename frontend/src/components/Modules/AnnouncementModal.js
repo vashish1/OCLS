@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
+import {TextField, Button } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import ListItem from '@material-ui/core/ListItem';
@@ -39,8 +39,7 @@ export default function AnnouncementModal() {
   // getModalStyle is not a pure function, we roll the style only on the first render
     const btnstyle={margin:'8px 0'}
     const textField={margin:'10px auto'};
-    const textField2={
-        margin:'10px auto',};
+   
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
   const [teacherName,setTeacherName]=useState("");
@@ -52,7 +51,6 @@ export default function AnnouncementModal() {
     const userData=JSON.parse(localStorage.getItem('user'))
     const userType=userData.type
     const handleCreateAnnouncement= async ()=>{
-        let item={teacherName,currentClass,desc,currentTime};
         let result=await fetch("https://thawing-mountain-02190.herokuapp.com/class/announcement/add",
         {
             method:"POST",
@@ -65,7 +63,6 @@ export default function AnnouncementModal() {
             body:JSON.stringify({"teacher_name":teacherName,"classcode":currentClass,"description":desc,"timestamp":currentTime})
         });
         result = await result.json();
-        console.log(result)
         handleClose()
     }
   

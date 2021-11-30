@@ -32,16 +32,16 @@ var (
 )
 
 func init() {
-
+	fmt.Println("reading file")
 	f, err := ioutil.ReadFile("./api/auth/creds.json")
 	if err != nil {
 		fmt.Println("could not read the file:", err)
 	}
 	err = json.Unmarshal(f, &cred)
-	// fmt.Print(cred.Redirect[0])
+	fmt.Print(cred.Redirect[0])
 	googleOauthConfig = &oauth2.Config{
 
-		RedirectURL:  cred.Redirect[1],
+		RedirectURL:  cred.Redirect[0],
 		ClientID:     cred.Cid,
 		ClientSecret: cred.Csecret,
 		Scopes: []string{
@@ -52,12 +52,16 @@ func init() {
 		},
 		Endpoint: google.Endpoint,
 	}
+	fmt.Println(googleOauthConfig)
 }
 
 func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
+	utility.EnableCors(&w)
 	// url := googleOauthConfig.AuthCodeURL(randomState)
-    utility.EnableCors(&w)
+	// fmt.Println(url)
+
 	URL, err := url.Parse(googleOauthConfig.Endpoint.AuthURL)
+	fmt.Println(URL)
 	if err != nil {
 		fmt.Println("Parse: " + err.Error())
 	}
@@ -69,6 +73,7 @@ func GoogleSignupHandler(w http.ResponseWriter, r *http.Request) {
 	parameters.Add("state", randomState)
 	URL.RawQuery = parameters.Encode()
 	url := URL.String()
+	fmt.Println(url)
 	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
 
@@ -111,7 +116,7 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`decoding invalid`))
 		return
 	}
-	url_string:="https://eassign.netlify.app/type?email="+user.Email+"&name="+user.Name
+	url_string := "https://eassign.netlify.app/type?email=" + user.Email + "&name=" + user.Name
 	fmt.Println(url_string)
 	URL, err := url.Parse(url_string)
 	if err != nil {
@@ -121,20 +126,19 @@ func GoogleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, url, http.StatusPermanentRedirect)
 }
 
-func Welcome(w http.ResponseWriter,r *http.Request){
+func Welcome(w http.ResponseWriter, r *http.Request) {
 	utility.EnableCors(&w)
-         q:=r.URL.Query()
-		 var output struct {
-			Name  string
-			Email string
-		}
-		output.Name = q.Get("name")
-		output.Email = q.Get("email")
-		res:=models.Response{
-			Success: true,
-			Data: output,
-		}
-		utility.SendResponse(w,res,200)
+	q := r.URL.Query()
+	var output struct {
+		Name  string
+		Email string
+	}
+	output.Name = q.Get("name")
+	output.Email = q.Get("email")
+	res := models.Response{
+		Success: true,
+		Data:    output,
+	}
+	utility.SendResponse(w, res, 200)
 	return
 }
-

@@ -25,7 +25,6 @@ import ClassIcon from '@material-ui/icons/Class';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import GetAnnouncement from '../GetAnnouncement';
 import CreateAssignment from '../CreateAssignment';
-import SimpleTabs from '../Containers/AnnounceAssign';
 const drawerWidth = 240;
 const useStyles = makeStyles((theme) => ({
   root: {

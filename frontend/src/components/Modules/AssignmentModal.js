@@ -6,7 +6,7 @@ import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import List from '@material-ui/core/List'
-import * as moment from 'moment';
+// import * as moment from 'moment';
 
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutlineOutlined';
 function rand() {
@@ -39,14 +39,12 @@ const AssignmentModal= props => {
   // getModalStyle is not a pure function, we roll the style only on the first render
     const btnstyle={margin:'8px 0'}
     const textField={margin:'10px auto'};
-    const textField2={
-        margin:'10px auto',};
+    
   const [modalStyle] = React.useState(getModalStyle);
   const [open, setOpen] = React.useState(false);
-  const [teacherName,setTeacherName]=useState("");
     const [desc,setDesc]=useState("");
-    const yourDate = new Date();
-    const currentTime = moment(yourDate).format('DD-MMM-YY');
+    // const yourDate = new Date();
+    // const currentTime = moment(yourDate).format('DD-MMM-YY');
     const userToken=localStorage.getItem('token')
     const currentClass=localStorage.getItem('class-code')
     const [imageAsFile,setImageAsFile]= useState()
@@ -59,18 +57,15 @@ const AssignmentModal= props => {
     
     setImageAsFile((imageFile)=>image)
   }
-  const classid=JSON.parse(localStorage.getItem('classid'))
   const handleCreateAssignment= async (e)=>{
     e.preventDefault()
-    const item={desc,subDate,currentClass,imageAsFile}
-    
+   
     const requestData = new FormData();
   requestData.set('description',desc);
-  requestData.set('date',currentTime);
+  requestData.set('date',subDate);
   requestData.set('class_code',currentClass);
   requestData.set('file', imageAsFile);
-  console.log(currentTime)
-  console.log(currentClass)
+
     let result=await fetch("https://thawing-mountain-02190.herokuapp.com/class/assignment/add",
     {
         method:"POST",
@@ -81,7 +76,6 @@ const AssignmentModal= props => {
         body:requestData
     });
     result = await result.json();
-    console.log(result)
     handleClose()
 }
     
@@ -102,7 +96,6 @@ const AssignmentModal= props => {
           body:requestData
       });
       result = await result.json();
-      console.log(result)
       handleClose()
   }
   

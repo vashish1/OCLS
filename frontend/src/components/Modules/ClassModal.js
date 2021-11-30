@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
+import {TextField, Button } from '@material-ui/core'
 import { makeStyles } from '@material-ui/core/styles';
 import Modal from '@material-ui/core/Modal';
 import ListItem from '@material-ui/core/ListItem';
@@ -62,7 +62,6 @@ export default function SimpleModal() {
             body:JSON.stringify(item)
         });
         result = await result.json();
-        console.log(result)
         handleClose()
     }
     const [classCode,setClassCode]=useState()
@@ -80,7 +79,6 @@ export default function SimpleModal() {
             body:JSON.stringify(item)
         });
         result = await result.json();
-        console.log(result)
         handleClose()
     }
   const handleOpen = () => {

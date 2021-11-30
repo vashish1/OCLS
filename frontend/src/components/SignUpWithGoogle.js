@@ -35,7 +35,7 @@ const SignUpWithGoogle = () => {
         const name= url.searchParams.get("name");
         e.preventDefault();
         let item={email:email,name:name,type:value};
-        console.log(item)
+        
         let result=await fetch("https://thawing-mountain-02190.herokuapp.com/signup",
         {
             method:"POST",
@@ -46,7 +46,6 @@ const SignUpWithGoogle = () => {
             body:JSON.stringify(item)
         });
         result = await result.json();
-        console.log(result)
         history('/login')
         
     }
@@ -57,7 +56,7 @@ const SignUpWithGoogle = () => {
         const name= url.searchParams.get("name");
         e.preventDefault();
         let item={email:email,name:name,type:value};
-        console.log(item)
+       
         let result=await fetch("https://thawing-mountain-02190.herokuapp.com/login/google",
         {
             method:"POST",
@@ -68,7 +67,6 @@ const SignUpWithGoogle = () => {
             body:JSON.stringify(item)
         });
         result = await result.json();
-        console.log(result)
         localStorage.setItem('user', JSON.stringify(result.data.User)) ;
         localStorage.setItem('token', result.data.Token) ; 
         history('/dashboard')

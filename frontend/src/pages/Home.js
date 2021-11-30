@@ -1,21 +1,13 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from "react-router-dom";
-import { Grid,Paper, Avatar, TextField, Button, Typography,Link } from '@material-ui/core'
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Checkbox from '@material-ui/core/Checkbox';
-import Axios from 'axios';
-import { useGlobal } from '../context/SignupContext';
+import { Grid,Paper, Avatar, Button  } from '@material-ui/core'
+
 import { Public } from '@material-ui/icons';
-const initialValues={
-    email: '',
-    password: ''
-}
+
 
 const Home=({handleChange})=>{
     
-    const [loginValues, setLoginValues] = useState(initialValues);
-    
+ 
     const paperStyle={
         padding :20,
         width:700, 

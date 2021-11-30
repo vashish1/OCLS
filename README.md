@@ -45,7 +45,7 @@
 ### Download [Go](https://go.dev/)
 
 ### Clone the project
-### Crete 'creds.json' file and add it into the api/auth folder.
+### Crete 'creds.json' file and add it into the api/auth folder. Google login will not work without this file.
   
   This file is required for Oauth signin using google.
 

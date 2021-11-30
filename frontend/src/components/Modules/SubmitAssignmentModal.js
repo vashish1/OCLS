@@ -71,7 +71,7 @@ export default function AssignmentModal() {
             body:JSON.stringify(item)
         });
         result = await result.json();
-        console.log(result)
+     
         handleClose()
     }
   

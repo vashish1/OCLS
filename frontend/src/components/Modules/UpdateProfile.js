@@ -1,14 +1,9 @@
 import React,{useState} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import Card from '@material-ui/core/Card';
-import CardActions from '@material-ui/core/CardActions';
-import CardContent from '@material-ui/core/CardContent';
+
 import Button from '@material-ui/core/Button';
-import Typography from '@material-ui/core/Typography';
 import { useNavigate } from 'react-router';
-import { Avatar, Grid, Paper, TextField} from '@material-ui/core';
-import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
-import Axios from 'axios';
+import {  Grid, Paper, TextField} from '@material-ui/core';
 import { People } from '@material-ui/icons';
 
 const useStyles = makeStyles({
@@ -60,7 +55,6 @@ export default function UpdateProfile() {
         width:300, 
         margin:"0 auto"
     }
-    const avatarStyle={backgroundColor:'#1bbd7e'}
     const btnstyle={margin:'8px 0'}
     const navigateto=useNavigate()
    const userToken=localStorage.getItem('token')
@@ -78,7 +72,7 @@ export default function UpdateProfile() {
             body:JSON.stringify(userProfile)
         });
         result = await result.json();
-        console.log(result)
+       
         // localStorage.setItem('user', JSON.stringify(result.data.User)) ;
         localStorage.setItem('updatedUser', JSON.stringify(result.data)) ;
         navigateto('/profile')

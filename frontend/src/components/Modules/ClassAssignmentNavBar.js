@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import clsx from 'clsx';
 import { makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
-import {AppBar, Tabs, Tab, Input} from '@material-ui/core';
+import {AppBar} from '@material-ui/core';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
 import CssBaseline from '@material-ui/core/CssBaseline';
@@ -20,18 +20,12 @@ import ListItemText from '@material-ui/core/ListItemText';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
-import NotificationImportantIcon from '@material-ui/icons/NotificationImportant';
 import ClassIcon from '@material-ui/icons/Class';
-import AssignmentIcon from '@material-ui/icons/Assignment';
-import GetAnnouncement from '../GetAnnouncement';
-import SimpleTabs from '../Containers/AnnounceAssign';
-import AnnouncementModal from './AnnouncementModal';
-import OutlinedCard from './ClassCard';
+
 import AssignmentModal from './AssignmentModal';
-import { ArrowBack, Assignment, Note } from '@material-ui/icons';
+import { ArrowBack, Assignment} from '@material-ui/icons';
 import AssignOutlinedCard from './AssignClassCard';
 import GetSubmissionModal from './GetSubmissionModal';
-import Createquiz from '../../quizapp/Createquiz';
 const drawerWidth = 400;
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -107,7 +101,6 @@ const AssignmentMiniDrawer = props =>{
   const [anchorEl, setAnchorEl] = React.useState(null);
   const opened = Boolean(anchorEl);
 localStorage.setItem('classid',JSON.stringify([]))
-var classid=JSON.parse(localStorage.getItem('classid'))
 
   useEffect(() => {
     handleGetAssignment()
@@ -160,7 +153,6 @@ var classid=JSON.parse(localStorage.getItem('classid'))
     });
     result = await result.json();
     setAssign(result.data)
-    console.log(result.data)
     {result.data?setClassData(true):setClassData(false)}
     setLoadingDone(true)
 }
